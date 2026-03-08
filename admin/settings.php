@@ -45,22 +45,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             foreach ($logoFields as $field => $label) {
                 if (!empty($_FILES[$field]['name'])) {
-                    $result = uploadImageWithError($_FILES[$field], 'logos');
-                    if (is_string($result) && str_starts_with($result, '/')) {
+                    $result = uploadImageDetailed($_FILES[$field], 'logos');
+                    if (str_starts_with($result, '/')) {
                         updateSetting($pdo, $field, $result);
                     } else {
-                        $errors[] = "$label Logo: " . ($result ?: 'Upload failed. Check file type (JPG/PNG/GIF/WEBP) and size (max 5 MB).');
+                        $errors[] = "$label Logo: $result";
                     }
                 }
             }
 
             /* ── Favicon upload ── */
             if (!empty($_FILES['favicon_file']['name'])) {
-                $result = uploadImageWithError($_FILES['favicon_file'], 'logos');
-                if (is_string($result) && str_starts_with($result, '/')) {
+                $result = uploadImageDetailed($_FILES['favicon_file'], 'logos');
+                if (str_starts_with($result, '/')) {
                     updateSetting($pdo, 'favicon', $result);
                 } else {
-                    $errors[] = 'Favicon: ' . ($result ?: 'Upload failed.');
+                    $errors[] = "Favicon: $result";
                 }
             }
 
@@ -73,47 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $s = getSettings($pdo);
-
-/* ── Helper: uploadImage that returns error string on failure ── */
-function uploadImageWithError(array $file, string $dir = 'uploads'): string {
-    $uploadDir = __DIR__ . '/../assets/' . $dir . '/';
-    if (!is_dir($uploadDir)) {
-        if (!mkdir($uploadDir, 0755, true)) return 'Cannot create upload directory (check permissions).';
-    }
-    if (!is_writable($uploadDir)) return 'Upload directory is not writable.';
-
-    $allowedMimes = ['image/jpeg','image/png','image/gif','image/webp','image/x-icon','image/vnd.microsoft.icon'];
-    $allowedExts  = ['jpg','jpeg','png','gif','webp','ico'];
-
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        $errMap = [
-            UPLOAD_ERR_INI_SIZE   => 'File exceeds server upload limit.',
-            UPLOAD_ERR_FORM_SIZE  => 'File exceeds form size limit.',
-            UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded.',
-            UPLOAD_ERR_NO_FILE    => 'No file was uploaded.',
-            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder.',
-            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
-        ];
-        return $errMap[$file['error']] ?? 'Unknown upload error (code '.$file['error'].')';
-    }
-
-    $finfo    = finfo_open(FILEINFO_MIME_TYPE);
-    $realMime = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-    if (!in_array($realMime, $allowedMimes)) return 'Invalid file type ('.$realMime.'). Only JPG/PNG/GIF/WEBP/ICO allowed.';
-    if ($file['size'] > 5 * 1024 * 1024) return 'File too large ('.round($file['size']/1024/1024,1).' MB). Max 5 MB.';
-
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if (!in_array($ext, $allowedExts)) return 'Invalid extension.'.$ext;
-
-    $filename = bin2hex(random_bytes(16)) . '.' . $ext;
-    $filepath = $uploadDir . $filename;
-
-    if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        return '/assets/' . $dir . '/' . $filename;
-    }
-    return 'move_uploaded_file() failed — check directory permissions on the server.';
-}
 
 /* ── Active tab ── */
 $tab = $_GET['tab'] ?? 'general';
@@ -231,7 +190,7 @@ $tab = $_GET['tab'] ?? 'general';
                         </div>
                         <small class="text-muted d-block mb-2"><?= $meta['hint'] ?></small>
                         <!-- Upload -->
-                        <form method="POST" enctype="multipart/form-data" class="mb-2">
+                        <form method="POST" action="?tab=logos" enctype="multipart/form-data" class="mb-2">
                             <?= csrfField() ?>
                             <input type="file" name="<?= $field ?>" id="file-<?= $field ?>" class="logo-upload-btn" accept="image/*" onchange="previewLogo(this,'<?= $field ?>')">
                             <label for="file-<?= $field ?>" class="logo-upload-label w-100 text-center mb-2">
@@ -244,7 +203,7 @@ $tab = $_GET['tab'] ?? 'general';
                         </form>
                         <!-- Remove -->
                         <?php if ($current): ?>
-                        <form method="POST">
+                        <form method="POST" action="?tab=logos">
                             <?= csrfField() ?>
                             <input type="hidden" name="remove_logo" value="<?= $field ?>">
                             <button type="submit" class="btn btn-outline-danger btn-sm w-100 btn-remove-logo"
