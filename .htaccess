@@ -38,9 +38,36 @@ Options -MultiViews
 </FilesMatch>
 
 <IfModule mod_php.c>
-    php_flag display_errors Off
-    php_value error_reporting 0
-    php_flag log_errors On
+    php_flag  display_errors      Off
+    php_value error_reporting     0
+    php_flag  log_errors          On
+    php_value upload_max_filesize 20M
+    php_value post_max_size       24M
+    php_value memory_limit        256M
+    php_value max_execution_time  120
+    php_value max_input_time      120
+</IfModule>
+
+<IfModule mod_php7.c>
+    php_flag  display_errors      Off
+    php_value error_reporting     0
+    php_flag  log_errors          On
+    php_value upload_max_filesize 20M
+    php_value post_max_size       24M
+    php_value memory_limit        256M
+    php_value max_execution_time  120
+    php_value max_input_time      120
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_flag  display_errors      Off
+    php_value error_reporting     0
+    php_flag  log_errors          On
+    php_value upload_max_filesize 20M
+    php_value post_max_size       24M
+    php_value memory_limit        256M
+    php_value max_execution_time  120
+    php_value max_input_time      120
 </IfModule>
 
 <IfModule mod_deflate.c>
