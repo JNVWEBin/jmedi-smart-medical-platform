@@ -1,22 +1,25 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    session_start([
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Strict',
+    ]);
 }
 
 $db_url = getenv('DATABASE_URL');
 if ($db_url) {
     $parsed = parse_url($db_url);
-    $host = $parsed['host'] ?? 'localhost';
-    $port = $parsed['port'] ?? 5432;
+    $host   = $parsed['host'] ?? 'localhost';
+    $port   = $parsed['port'] ?? 5432;
     $dbname = ltrim($parsed['path'] ?? '', '/');
-    $user = $parsed['user'] ?? '';
-    $pass = $parsed['pass'] ?? '';
+    $user   = $parsed['user'] ?? '';
+    $pass   = $parsed['pass'] ?? '';
 } else {
-    $host = getenv('PGHOST') ?: 'localhost';
-    $port = getenv('PGPORT') ?: 5432;
-    $dbname = getenv('PGDATABASE') ?: 'postgres';
-    $user = getenv('PGUSER') ?: 'postgres';
-    $pass = getenv('PGPASSWORD') ?: '';
+    $host   = 'localhost';
+    $port   = 5432;
+    $dbname = 'svaobtfy_jmedi';
+    $user   = 'svaobtfy_jmedi';
+    $pass   = 'sa1T4HXr@7602626264';
 }
 
 try {
@@ -25,9 +28,9 @@ try {
         $user,
         $pass,
         [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false
+            PDO::ATTR_EMULATE_PREPARES   => false
         ]
     );
 } catch (PDOException $e) {
