@@ -1,4 +1,21 @@
 <?php
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+requireLogin();
+requireSuperAdmin();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $deleteId = (int)$_POST['delete_id'];
+        if ($deleteId !== (int)$_SESSION['admin_id']) {
+            $pdo->prepare("DELETE FROM admins WHERE admin_id = :id")->execute([':id' => $deleteId]);
+        }
+    }
+    header('Location: /admin/users.php?msg=deleted');
+    exit;
+}
+
 $pageTitle = 'User Management';
 require_once __DIR__ . '/../includes/admin_header.php';
 requireSuperAdmin();
@@ -103,21 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_user'])) {
                     }
                 }
             }
-        }
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
-    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $error = 'Invalid form submission.';
-    } else {
-        $deleteId = (int)$_POST['delete_id'];
-        if ($deleteId === (int)$_SESSION['admin_id']) {
-            $error = 'You cannot delete your own account.';
-        } else {
-            $pdo->prepare("DELETE FROM admins WHERE admin_id = :id")->execute([':id' => $deleteId]);
-            header('Location: /admin/users.php?msg=deleted');
-            exit;
         }
     }
 }
