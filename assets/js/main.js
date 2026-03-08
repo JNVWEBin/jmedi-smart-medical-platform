@@ -129,4 +129,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         counterObserver.observe(counter);
     });
+
+    const mobDrawer = document.getElementById('mobileNavDrawer');
+    const mobBtn    = document.getElementById('mobMenuBtn');
+    if (mobDrawer && mobBtn) {
+        mobDrawer.addEventListener('show.bs.offcanvas',   () => mobBtn.classList.add('is-open'));
+        mobDrawer.addEventListener('hidden.bs.offcanvas', () => mobBtn.classList.remove('is-open'));
+    }
 });
