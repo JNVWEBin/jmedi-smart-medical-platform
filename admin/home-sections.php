@@ -42,12 +42,16 @@ if ($heroAction === 'edit' && $heroId) {
     $editSlide = getHeroSlide($pdo, $heroId);
 }
 
+$videosSection = getHomeSection($pdo, 'our_videos') ?: ['title' => 'Our Latest Videos', 'subtitle' => 'Watch health tips, facility tours and expert talks', 'videos' => []];
+if (empty($videosSection['videos'])) $videosSection['videos'] = [];
+
 $allSections = [
     'hero_slider' => ['label' => 'Hero Slider', 'icon' => 'fa-images', 'color' => '#0D6EFD'],
     'info_strip' => ['label' => 'Info Strip', 'icon' => 'fa-columns', 'color' => '#6f42c1'],
     'about_section' => ['label' => 'About Us', 'icon' => 'fa-info-circle', 'color' => '#20C997'],
     'departments' => ['label' => 'Departments', 'icon' => 'fa-hospital', 'color' => '#0dcaf0'],
     'doctors' => ['label' => 'Doctors', 'icon' => 'fa-user-md', 'color' => '#198754'],
+    'our_videos' => ['label' => 'Our Videos', 'icon' => 'fa-play-circle', 'color' => '#ff0000'],
     'cta_checkup' => ['label' => 'CTA - Check-up', 'icon' => 'fa-stethoscope', 'color' => '#fd7e14'],
     'appointment' => ['label' => 'Appointment Form', 'icon' => 'fa-calendar-check', 'color' => '#0a58ca'],
     'process' => ['label' => 'Working Process', 'icon' => 'fa-cogs', 'color' => '#6610f2'],
@@ -337,6 +341,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         } else { $error = 'Failed to save.'; }
     }
 
+    if ($action === 'save_video_settings') {
+        $videosSection['title'] = trim($_POST['vid_title'] ?? 'Our Latest Videos');
+        $videosSection['subtitle'] = trim($_POST['vid_subtitle'] ?? '');
+        if (saveHomeSection($pdo, 'our_videos', $videosSection)) {
+            $success = 'Video section heading updated!';
+        } else { $error = 'Failed to save.'; }
+    }
+
+    if ($action === 'add_video') {
+        $rawUrl = trim($_POST['video_url'] ?? '');
+        $vidTitle = trim($_POST['video_title'] ?? 'Untitled Video');
+        preg_match('/(?:v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/', $rawUrl, $m);
+        $vidId = $m[1] ?? $rawUrl;
+        if (strlen($vidId) === 11) {
+            $videosSection['videos'][] = ['id' => $vidId, 'title' => $vidTitle, 'active' => true];
+            if (saveHomeSection($pdo, 'our_videos', $videosSection)) {
+                $success = 'Video added!';
+            } else { $error = 'Failed to save.'; }
+        } else {
+            $error = 'Invalid YouTube URL or video ID.';
+        }
+    }
+
+    if ($action === 'toggle_video') {
+        $vidIdx = (int)($_POST['video_index'] ?? -1);
+        if (isset($videosSection['videos'][$vidIdx])) {
+            $videosSection['videos'][$vidIdx]['active'] = !($videosSection['videos'][$vidIdx]['active'] ?? true);
+            saveHomeSection($pdo, 'our_videos', $videosSection);
+            $success = 'Video status updated!';
+        }
+    }
+
+    if ($action === 'delete_video') {
+        $vidIdx = (int)($_POST['video_index'] ?? -1);
+        if (isset($videosSection['videos'][$vidIdx])) {
+            array_splice($videosSection['videos'], $vidIdx, 1);
+            saveHomeSection($pdo, 'our_videos', $videosSection);
+            $success = 'Video deleted!';
+        }
+    }
+
     if ($action === 'hero_save') {
         $title = trim($_POST['title'] ?? '');
         $subtitle = trim($_POST['subtitle'] ?? '');
@@ -455,6 +500,7 @@ if (isset($_GET['msg'])) {
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#blogTab" type="button"><i class="fas fa-newspaper me-1"></i> Blog</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#locationTab" type="button"><i class="fas fa-map-marked-alt me-1"></i> Location</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ctaReadyTab" type="button"><i class="fas fa-rocket me-1"></i> CTA Ready</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#videosTab" type="button"><i class="fab fa-youtube me-1" style="color:#ff0000;"></i> Videos</button></li>
     </ul>
 
     <div class="tab-content">
@@ -1078,6 +1124,122 @@ if (isset($_GET['msg'])) {
                 </div>
             </div>
         </div>
+
+        <!-- ═══════════════════ OUR VIDEOS TAB ═══════════════════ -->
+        <div class="tab-pane fade" id="videosTab">
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0"><i class="fab fa-youtube me-2" style="color:#ff0000;"></i>Our Latest Videos — Section Settings</h6>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="save_video_settings">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Section Title</label>
+                                <input type="text" name="vid_title" class="form-control" value="<?= e($videosSection['title'] ?? 'Our Latest Videos') ?>">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Subtitle / Tagline</label>
+                                <input type="text" name="vid_subtitle" class="form-control" value="<?= e($videosSection['subtitle'] ?? '') ?>">
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-plus-circle me-2 text-success"></i>Add New Video</h6>
+                    <span class="badge bg-secondary"><?= count($videosSection['videos']) ?> video(s)</span>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="add_video">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">YouTube URL or Video ID</label>
+                                <input type="text" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=xxxxxxxxxx" required>
+                                <div class="form-text">Paste full YouTube URL or just the 11-character video ID</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Video Title</label>
+                                <input type="text" name="video_title" class="form-control" placeholder="e.g. Cardiology Overview" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-success w-100"><i class="fab fa-youtube me-1"></i>Add Video</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <?php if (!empty($videosSection['videos'])): ?>
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0"><i class="fas fa-list me-2 text-primary"></i>Manage Videos</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <?php foreach ($videosSection['videos'] as $vIdx => $vid): ?>
+                        <?php $isActive = $vid['active'] ?? true; ?>
+                        <div class="col-md-4 col-sm-6">
+                            <div class="card border <?= $isActive ? 'border-success' : 'border-secondary' ?> rounded-3 overflow-hidden">
+                                <div class="position-relative">
+                                    <img src="https://img.youtube.com/vi/<?= e($vid['id']) ?>/hqdefault.jpg"
+                                         class="w-100" style="height:140px;object-fit:cover;" alt="<?= e($vid['title']) ?>">
+                                    <div class="position-absolute top-0 start-0 m-2">
+                                        <span class="badge <?= $isActive ? 'bg-success' : 'bg-secondary' ?>"><?= $isActive ? 'Active' : 'Hidden' ?></span>
+                                    </div>
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,0,0,0.85);display:flex;align-items:center;justify-content:center;">
+                                            <i class="fas fa-play text-white" style="font-size:1rem;margin-left:3px;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="fw-semibold small mb-1 text-truncate" title="<?= e($vid['title']) ?>"><?= e($vid['title']) ?></div>
+                                    <div class="text-muted" style="font-size:0.7rem;">ID: <?= e($vid['id']) ?></div>
+                                </div>
+                                <div class="card-footer p-2 bg-light d-flex gap-2">
+                                    <form method="POST" class="d-inline flex-fill">
+                                        <?= csrfField() ?>
+                                        <input type="hidden" name="action" value="toggle_video">
+                                        <input type="hidden" name="video_index" value="<?= $vIdx ?>">
+                                        <button type="submit" class="btn btn-sm <?= $isActive ? 'btn-outline-warning' : 'btn-outline-success' ?> w-100">
+                                            <i class="fas <?= $isActive ? 'fa-eye-slash' : 'fa-eye' ?>"></i> <?= $isActive ? 'Hide' : 'Show' ?>
+                                        </button>
+                                    </form>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this video?')">
+                                        <?= csrfField() ?>
+                                        <input type="hidden" name="action" value="delete_video">
+                                        <input type="hidden" name="video_index" value="<?= $vIdx ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+            <?php else: ?>
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-3"><i class="fab fa-youtube" style="font-size:3rem;color:#ff0000;opacity:0.3;"></i></div>
+                    <h6 class="text-muted">No videos added yet</h6>
+                    <p class="text-muted small">Use the form above to add your first YouTube video.</p>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+        <!-- ══════════════════════════════════════════════════════ -->
+
     </div>
 
 <script>
