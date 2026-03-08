@@ -125,10 +125,10 @@ $allPosts = getPosts($pdo);
                     <td><?= formatDate($p['created_at']) ?></td>
                     <td>
                         <a href="/admin/blog.php?action=edit&id=<?= $p['post_id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                        <form method="POST" class="d-inline" onsubmit="return confirm('Delete this post?')">
+                        <form method="POST" class="d-inline">
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                             <input type="hidden" name="delete_id" value="<?= $p['post_id'] ?>">
-                            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-trigger data-delete-label="the post '<?= e($p['title']) ?>'"><i class="fas fa-trash"></i></button>
                         </form>
                     </td>
                 </tr>
