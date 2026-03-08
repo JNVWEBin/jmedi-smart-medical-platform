@@ -115,10 +115,10 @@ $allTests = getTestimonials($pdo, false);
                     <td><span class="badge <?= $t['status'] ? 'bg-success' : 'bg-secondary' ?>"><?= $t['status'] ? 'Active' : 'Inactive' ?></span></td>
                     <td>
                         <a href="/admin/testimonials.php?action=edit&id=<?= $t['testimonial_id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                        <form method="POST" class="d-inline" onsubmit="return confirm('Delete this testimonial?')">
+                        <form method="POST" class="d-inline">
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                             <input type="hidden" name="delete_id" value="<?= $t['testimonial_id'] ?>">
-                            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-trigger data-delete-label="the testimonial by '<?= e($t['patient_name']) ?>'"><i class="fas fa-trash"></i></button>
                         </form>
                     </td>
                 </tr>
