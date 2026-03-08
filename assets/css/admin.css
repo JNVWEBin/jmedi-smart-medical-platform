@@ -1,16 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --admin-primary: #16492f;
-    --admin-primary-light: #1e5c3c;
-    --admin-primary-dark: #0e3320;
-    --admin-accent: #22c55e;
-    --admin-bg: #f2f6f4;
+    --admin-primary: #1a2e5e;
+    --admin-primary-light: #243972;
+    --admin-primary-dark: #111e42;
+    --admin-accent: #3b82f6;
+    --admin-accent-dark: #2563eb;
+    --admin-bg: #f0f4fb;
     --admin-card: #ffffff;
-    --admin-text: #1a2e1f;
-    --admin-text-muted: #6b7f71;
-    --admin-border: #e0eae4;
-    --admin-sidebar-w: 250px;
+    --admin-text: #1e293b;
+    --admin-text-muted: #64748b;
+    --admin-border: #e2e8f2;
+    --admin-sidebar-w: 255px;
 }
 
 * { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -59,9 +60,9 @@
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
-    color: #0e3320;
+    color: #111e42;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.35);
 }
 
 .sidebar-section-label {
@@ -134,14 +135,14 @@
 }
 
 .sidebar-nav li.active a {
-    color: #0e3320;
+    color: #111e42;
     background: var(--admin-accent);
     font-weight: 700;
-    box-shadow: 0 4px 14px rgba(34,197,94,0.3);
+    box-shadow: 0 4px 14px rgba(59,130,246,0.3);
 }
 
 .sidebar-nav li.active a i {
-    color: #0e3320;
+    color: #111e42;
 }
 
 .admin-content {
@@ -179,7 +180,7 @@
 .topbar-search input:focus {
     border-color: var(--admin-accent);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
 }
 
 .topbar-search i {
@@ -199,7 +200,7 @@
 
 .topbar-actions .btn-add {
     background: var(--admin-accent);
-    color: #0e3320;
+    color: #111e42;
     border: none;
     border-radius: 30px;
     padding: 0.5rem 1.25rem;
@@ -209,12 +210,12 @@
     align-items: center;
     gap: 6px;
     transition: all 0.2s;
-    box-shadow: 0 4px 14px rgba(34,197,94,0.25);
+    box-shadow: 0 4px 14px rgba(59,130,246,0.25);
 }
 
 .topbar-actions .btn-add:hover {
-    background: #1aaa4e;
-    box-shadow: 0 6px 20px rgba(34,197,94,0.35);
+    background: #2563eb;
+    box-shadow: 0 6px 20px rgba(59,130,246,0.35);
     transform: translateY(-1px);
 }
 
@@ -575,7 +576,7 @@
 }
 
 .occupancy-badge {
-    background: rgba(34,197,94,0.1);
+    background: rgba(59,130,246,0.1);
     color: var(--admin-accent);
     font-size: 0.75rem;
     font-weight: 600;
@@ -621,7 +622,7 @@
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    background: rgba(34,197,94,0.1);
+    background: rgba(59,130,246,0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -862,6 +863,81 @@
     pointer-events: none;
 }
 
+.dr-sidebar-profile {
+    padding: 1.5rem 1rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.dr-sb-photo {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 0.8rem;
+    padding: 3px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    box-shadow: 0 6px 24px rgba(59,130,246,0.35);
+}
+.dr-sb-avatar {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.8rem;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 6px 24px rgba(59,130,246,0.4);
+    border: 3px solid rgba(255,255,255,0.15);
+}
+.dr-sb-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+}
+.dr-sb-spec {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #93c5fd;
+    margin-bottom: 0.15rem;
+    letter-spacing: 0.3px;
+}
+.dr-sb-qual {
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+}
+.dr-sb-divider {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+    margin: 0.8rem auto 0;
+}
+
+.sidebar-collapsed .dr-sidebar-profile .dr-sb-name,
+.sidebar-collapsed .dr-sidebar-profile .dr-sb-spec,
+.sidebar-collapsed .dr-sidebar-profile .dr-sb-qual,
+.sidebar-collapsed .dr-sidebar-profile .dr-sb-divider {
+    display: none;
+}
+.sidebar-collapsed .dr-sidebar-profile .dr-sb-photo,
+.sidebar-collapsed .dr-sidebar-profile .dr-sb-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+.sidebar-collapsed .dr-sidebar-profile {
+    padding: 0.75rem 0.5rem;
+}
+
 .doctor-card {
     background: var(--admin-card);
     border-radius: 14px;
@@ -928,7 +1004,7 @@
     border-radius: 50%;
     background: var(--admin-accent);
     border: 2px solid #fff;
-    box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
 }
 
 .recent-patient-item {
@@ -1059,7 +1135,7 @@
     font-size: 1.8rem;
     font-weight: 700;
     margin: 0 auto;
-    box-shadow: 0 6px 20px rgba(34,197,94,0.25);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.25);
 }
 .dr-info-grid {
     display: grid;
@@ -1148,7 +1224,7 @@
 .scroll-btn:hover {
     background: var(--admin-accent);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(34,197,94,0.3);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.3);
 }
 
 @media (max-width: 991px) {
