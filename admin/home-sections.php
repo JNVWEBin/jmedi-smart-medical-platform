@@ -1,4 +1,25 @@
 <?php
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+requireLogin();
+requirePermission('home_sections');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $earlyAction = $_POST['action'] ?? '';
+    if ($earlyAction === 'hero_delete' && isset($_POST['delete_id'])) {
+        $pdo->prepare("DELETE FROM hero_slides WHERE id = :id")->execute([':id' => (int)$_POST['delete_id']]);
+        header('Location: /admin/home-sections.php?tab=heroSlidesTab&msg=deleted');
+        exit;
+    }
+    if ($earlyAction === 'hero_toggle' && isset($_POST['toggle_id'])) {
+        $pdo->prepare("UPDATE hero_slides SET status = CASE WHEN status = 1 THEN 0 ELSE 1 END WHERE id = :id")
+            ->execute([':id' => (int)$_POST['toggle_id']]);
+        header('Location: /admin/home-sections.php?tab=heroSlidesTab&msg=toggled');
+        exit;
+    }
+}
+
 $pageTitle = 'Home Page Sections';
 require_once __DIR__ . '/../includes/admin_header.php';
 requirePermission('home_sections');
@@ -314,19 +335,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         if (saveHomeSection($pdo, 'cta_ready', $ctaReady)) {
             $success = 'CTA Ready section updated!';
         } else { $error = 'Failed to save.'; }
-    }
-
-    if ($action === 'hero_delete' && isset($_POST['delete_id'])) {
-        $pdo->prepare("DELETE FROM hero_slides WHERE id = :id")->execute([':id' => (int)$_POST['delete_id']]);
-        header('Location: /admin/home-sections.php?tab=heroSlidesTab&msg=deleted');
-        exit;
-    }
-
-    if ($action === 'hero_toggle' && isset($_POST['toggle_id'])) {
-        $pdo->prepare("UPDATE hero_slides SET status = CASE WHEN status = 1 THEN 0 ELSE 1 END WHERE id = :id")
-            ->execute([':id' => (int)$_POST['toggle_id']]);
-        header('Location: /admin/home-sections.php?tab=heroSlidesTab&msg=toggled');
-        exit;
     }
 
     if ($action === 'hero_save') {
