@@ -1,0 +1,225 @@
+<?php
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/functions.php';
+requireLogin();
+
+$adminPage = basename($_SERVER['PHP_SELF'], '.php');
+$adminName = $_SESSION['admin_name'] ?? 'Admin';
+$adminEmail = $_SESSION['admin_email'] ?? '';
+$adminRole = getRole();
+$adminInitials = strtoupper(substr($adminName, 0, 1));
+$adminAvatar = $_SESSION['admin_avatar'] ?? '';
+
+$pendingNotif = (int)$pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'pending'")->fetchColumn();
+
+if (isDoctor()) {
+    $docId = (int)($_SESSION['admin_doctor_id'] ?? 0);
+    $stDocPending = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'pending'");
+    $stDocPending->execute([':d' => $docId]);
+    $pendingNotif = (int)$stDocPending->fetchColumn();
+
+    $stRecentPend = $pdo->prepare("SELECT patient_name, appointment_date, appointment_time, appointment_id FROM appointments WHERE doctor_id = :d AND status = 'pending' ORDER BY created_at DESC LIMIT 5");
+    $stRecentPend->execute([':d' => $docId]);
+    $recentPending = $stRecentPend->fetchAll();
+} else {
+    $recentPending = $pdo->query("SELECT patient_name, appointment_date, appointment_time, appointment_id FROM appointments WHERE status = 'pending' ORDER BY created_at DESC LIMIT 5")->fetchAll();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= isset($pageTitle) ? e($pageTitle) . ' – ' : '' ?>JMedi Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="/assets/css/admin.css" rel="stylesheet">
+</head>
+<body>
+<div class="admin-wrapper">
+    <nav class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <a href="/admin/dashboard.php" class="sidebar-brand text-white text-decoration-none">
+                <span class="brand-icon"><i class="fas fa-heartbeat"></i></span>
+                <span>JMedi</span>
+            </a>
+        </div>
+
+        <div class="sidebar-section-label" data-section="menu" role="button" tabindex="0" aria-expanded="true" aria-controls="section-menu"><span>Menu</span><i class="fas fa-chevron-down section-arrow"></i></div>
+        <ul class="sidebar-nav" data-section-list="menu" id="section-menu">
+            <li class="<?= $adminPage === 'dashboard' ? 'active' : '' ?>">
+                <a href="/admin/dashboard.php" data-tooltip="Dashboard"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            </li>
+            <?php if (hasPermission('doctors')): ?>
+            <li class="<?= $adminPage === 'doctors' ? 'active' : '' ?>">
+                <a href="/admin/doctors.php" data-tooltip="Doctors"><i class="fas fa-user-md"></i><span>Doctors</span></a>
+            </li>
+            <li class="<?= $adminPage === 'doctor-schedules' ? 'active' : '' ?>">
+                <a href="/admin/doctor-schedules.php" data-tooltip="Doctor Schedules"><i class="fas fa-calendar-alt"></i><span>Doctor Schedules</span></a>
+            </li>
+            <?php endif; ?>
+            <?php if (hasPermission('departments')): ?>
+            <li class="<?= $adminPage === 'departments' ? 'active' : '' ?>">
+                <a href="/admin/departments.php" data-tooltip="Departments"><i class="fas fa-hospital"></i><span>Departments</span></a>
+            </li>
+            <?php endif; ?>
+            <?php if (hasPermission('appointments')): ?>
+            <li class="<?= $adminPage === 'appointments' ? 'active' : '' ?>">
+                <a href="/admin/appointments.php" data-tooltip="Appointments"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+            </li>
+            <?php endif; ?>
+            <?php if (isDoctor()): ?>
+            <li class="<?= $adminPage === 'appointments' ? 'active' : '' ?>">
+                <a href="/admin/appointments.php" data-tooltip="My Appointments"><i class="fas fa-calendar-check"></i><span>My Appointments</span></a>
+            </li>
+            <?php endif; ?>
+            <?php if (hasPermission('blog')): ?>
+            <li class="<?= $adminPage === 'blog' ? 'active' : '' ?>">
+                <a href="/admin/blog.php" data-tooltip="Blog Posts"><i class="fas fa-newspaper"></i><span>Blog Posts</span></a>
+            </li>
+            <?php endif; ?>
+            <?php if (hasPermission('testimonials')): ?>
+            <li class="<?= $adminPage === 'testimonials' ? 'active' : '' ?>">
+                <a href="/admin/testimonials.php" data-tooltip="Testimonials"><i class="fas fa-comments"></i><span>Testimonials</span></a>
+            </li>
+            <?php endif; ?>
+        </ul>
+
+        <?php if (hasPermission('home_sections') || hasPermission('menu_manager') || hasPermission('pages')): ?>
+        <div class="sidebar-section-label" data-section="cms" role="button" tabindex="0" aria-expanded="true" aria-controls="section-cms"><span>CMS</span><i class="fas fa-chevron-down section-arrow"></i></div>
+        <ul class="sidebar-nav" data-section-list="cms" id="section-cms">
+            <?php if (hasPermission('home_sections')): ?>
+            <li class="<?= $adminPage === 'home-sections' ? 'active' : '' ?>">
+                <a href="/admin/home-sections.php" data-tooltip="Home Sections"><i class="fas fa-home"></i><span>Home Sections</span></a>
+            </li>
+            <?php endif; ?>
+            <?php if (hasPermission('menu_manager')): ?>
+            <li class="<?= $adminPage === 'menu-manager' ? 'active' : '' ?>">
+                <a href="/admin/menu-manager.php" data-tooltip="Menu Manager"><i class="fas fa-bars"></i><span>Menu Manager</span></a>
+            </li>
+            <?php endif; ?>
+            <?php if (hasPermission('pages')): ?>
+            <li class="<?= $adminPage === 'pages' ? 'active' : '' ?>">
+                <a href="/admin/pages.php" data-tooltip="Page Editor"><i class="fas fa-file-alt"></i><span>Page Editor</span></a>
+            </li>
+            <?php endif; ?>
+        </ul>
+        <?php endif; ?>
+
+        <?php if (isSuperAdmin()): ?>
+        <div class="sidebar-section-label" data-section="superadmin" role="button" tabindex="0" aria-expanded="true" aria-controls="section-superadmin"><span>Super Admin</span><i class="fas fa-chevron-down section-arrow"></i></div>
+        <ul class="sidebar-nav" data-section-list="superadmin" id="section-superadmin">
+            <li class="<?= $adminPage === 'users' ? 'active' : '' ?>">
+                <a href="/admin/users.php" data-tooltip="User Management"><i class="fas fa-users-cog"></i><span>User Management</span></a>
+            </li>
+            <li class="<?= $adminPage === 'database' ? 'active' : '' ?>">
+                <a href="/admin/database.php" data-tooltip="Database Tools"><i class="fas fa-database"></i><span>Database Tools</span></a>
+            </li>
+            <li class="<?= $adminPage === 'backup' ? 'active' : '' ?>">
+                <a href="/admin/backup.php" data-tooltip="Site Backup"><i class="fas fa-download"></i><span>Site Backup</span></a>
+            </li>
+        </ul>
+        <?php endif; ?>
+
+        <div class="sidebar-section-label" data-section="other" role="button" tabindex="0" aria-expanded="true" aria-controls="section-other"><span>Other Menu</span><i class="fas fa-chevron-down section-arrow"></i></div>
+        <ul class="sidebar-nav" data-section-list="other" id="section-other">
+            <?php if (hasPermission('settings')): ?>
+            <li class="<?= $adminPage === 'settings' ? 'active' : '' ?>">
+                <a href="/admin/settings.php" data-tooltip="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </li>
+            <?php endif; ?>
+            <li class="<?= $adminPage === 'profile' ? 'active' : '' ?>">
+                <a href="/admin/profile.php" data-tooltip="My Profile"><i class="fas fa-user-circle"></i><span>My Profile</span></a>
+            </li>
+            <li>
+                <a href="/" data-tooltip="View Website"><i class="fas fa-globe"></i><span>View Website</span></a>
+            </li>
+            <li>
+                <a href="/admin/logout.php" data-tooltip="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="admin-content">
+        <header class="admin-topbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-link p-0 text-dark" id="sidebarToggle" title="Toggle Sidebar"><i class="fas fa-bars fs-5" id="sidebarToggleIcon"></i></button>
+                <div class="topbar-search d-none d-md-block">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search here..." class="form-control">
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <a href="/admin/appointments.php" class="btn-add d-none d-sm-flex">
+                    <i class="fas fa-plus"></i> Add patient
+                </a>
+
+                <button class="topbar-icon-btn" id="fullscreenBtn" title="Toggle Fullscreen" onclick="toggleFullscreen()">
+                    <i class="fas fa-expand" id="fullscreenIcon"></i>
+                </button>
+
+                <div class="dropdown">
+                    <button class="notification-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <?php if ($pendingNotif > 0): ?><span class="notification-dot"></span><?php endif; ?>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown" style="width:320px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.12);border:none;padding:0;">
+                        <div style="padding:14px 18px;border-bottom:1px solid #f0f0f0;">
+                            <h6 style="margin:0;font-weight:700;">Notifications</h6>
+                            <?php if ($pendingNotif > 0): ?><small class="text-muted"><?= $pendingNotif ?> pending appointment(s)</small><?php endif; ?>
+                        </div>
+                        <div style="max-height:280px;overflow-y:auto;">
+                            <?php if (empty($recentPending)): ?>
+                            <div style="padding:20px;text-align:center;color:#999;"><i class="fas fa-check-circle" style="font-size:1.5rem;"></i><p class="mb-0 mt-2 small">All caught up!</p></div>
+                            <?php else: ?>
+                            <?php foreach ($recentPending as $np): ?>
+                            <a href="/admin/appointments.php?view=<?= $np['appointment_id'] ?>" class="d-flex align-items-center gap-3 text-decoration-none" style="padding:10px 18px;border-bottom:1px solid #f8f8f8;color:#333;">
+                                <div style="width:36px;height:36px;border-radius:50%;background:#fff3cd;color:#856404;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-clock" style="font-size:0.85rem;"></i></div>
+                                <div>
+                                    <div style="font-weight:600;font-size:0.88rem;"><?= e($np['patient_name']) ?></div>
+                                    <small style="color:#999;"><?= date('M d', strtotime($np['appointment_date'])) ?> at <?= date('h:i A', strtotime($np['appointment_time'])) ?></small>
+                                </div>
+                            </a>
+                            <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                        <a href="/admin/appointments.php?status=pending" class="d-block text-center text-decoration-none" style="padding:10px;font-size:0.85rem;font-weight:600;color:#0d9488;border-top:1px solid #f0f0f0;">View All Pending</a>
+                    </div>
+                </div>
+
+                <div class="dropdown">
+                    <button class="topbar-avatar-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <?php if ($adminAvatar): ?>
+                        <img src="<?= e($adminAvatar) ?>" class="topbar-avatar-img" alt="">
+                        <?php else: ?>
+                        <div class="topbar-avatar"><?= $adminInitials ?></div>
+                        <?php endif; ?>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end profile-dropdown" style="width:260px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.12);border:none;padding:0;">
+                        <div style="padding:18px;text-align:center;border-bottom:1px solid #f0f0f0;">
+                            <?php if ($adminAvatar): ?>
+                            <img src="<?= e($adminAvatar) ?>" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:3px solid #e8f4fd;" alt="">
+                            <?php else: ?>
+                            <div style="width:56px;height:56px;border-radius:50%;background:var(--admin-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.3rem;margin:0 auto 8px;"><?= $adminInitials ?></div>
+                            <?php endif; ?>
+                            <div style="font-weight:700;font-size:1rem;"><?= e($adminName) ?></div>
+                            <div style="font-size:0.82rem;color:#999;margin-bottom:6px;"><?= e($adminEmail) ?></div>
+                            <?= getRoleBadge($adminRole) ?>
+                        </div>
+                        <div style="padding:8px;">
+                            <a href="/admin/profile.php" class="dropdown-item" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-user-circle me-2 text-muted"></i>My Profile</a>
+                            <a href="/admin/profile.php?tab=password" class="dropdown-item" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-key me-2 text-muted"></i>Change Password</a>
+                            <?php if (isSuperAdmin()): ?>
+                            <a href="/admin/users.php" class="dropdown-item" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-users-cog me-2 text-muted"></i>User Management</a>
+                            <?php endif; ?>
+                        </div>
+                        <div style="padding:8px;border-top:1px solid #f0f0f0;">
+                            <a href="/admin/logout.php" class="dropdown-item text-danger" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="admin-main p-4">
