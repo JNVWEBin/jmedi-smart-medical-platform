@@ -204,31 +204,85 @@ function getHeroSlide(PDO $pdo, int $id): ?array {
 }
 
 function uploadImage(array $file, string $dir = 'uploads'): ?string {
+    $result = uploadImageDetailed($file, $dir);
+    return (str_starts_with($result, '/')) ? $result : null;
+}
+
+/**
+ * Upload an image and return the web path on success, or a human-readable error string on failure.
+ */
+function uploadImageDetailed(array $file, string $dir = 'uploads'): string {
     $uploadDir = __DIR__ . '/../assets/' . $dir . '/';
+
     if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
+        if (!@mkdir($uploadDir, 0755, true)) {
+            $err = 'Cannot create upload directory: ' . $uploadDir . ' — check server permissions.';
+            error_log('[JMedi Upload] ' . $err);
+            return $err;
+        }
+    }
+    if (!is_writable($uploadDir)) {
+        $err = 'Upload directory not writable: ' . $uploadDir;
+        error_log('[JMedi Upload] ' . $err);
+        return $err;
     }
 
-    $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    $allowedExts  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    $allowedMimes = ['image/jpeg','image/png','image/gif','image/webp','image/x-icon','image/vnd.microsoft.icon'];
+    $allowedExts  = ['jpg','jpeg','png','gif','webp','ico'];
+
+    $phpErrMap = [
+        UPLOAD_ERR_INI_SIZE   => 'File too large — exceeds PHP upload_max_filesize (' . ini_get('upload_max_filesize') . '). Ask host to increase it or use a smaller image.',
+        UPLOAD_ERR_FORM_SIZE  => 'File too large — exceeds the HTML form MAX_FILE_SIZE.',
+        UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded. Please try again.',
+        UPLOAD_ERR_NO_FILE    => 'No file was sent.',
+        UPLOAD_ERR_NO_TMP_DIR => 'Server has no temporary folder configured.',
+        UPLOAD_ERR_CANT_WRITE => 'Server failed to write to disk.',
+        UPLOAD_ERR_EXTENSION  => 'A PHP extension blocked the upload.',
+    ];
+    if (isset($file['error']) && $file['error'] !== UPLOAD_ERR_OK) {
+        $err = $phpErrMap[$file['error']] ?? 'Unknown PHP upload error code: ' . $file['error'];
+        error_log('[JMedi Upload] ' . $err . ' | file: ' . ($file['name'] ?? '?'));
+        return $err;
+    }
+
+    if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+        $err = 'No valid uploaded file found (tmp_name missing or not a real upload).';
+        error_log('[JMedi Upload] ' . $err);
+        return $err;
+    }
 
     $finfo    = finfo_open(FILEINFO_MIME_TYPE);
     $realMime = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
-    if (!in_array($realMime, $allowedMimes)) return null;
-    if ($file['size'] > 5 * 1024 * 1024) return null;
+    if (!in_array($realMime, $allowedMimes)) {
+        $err = 'Invalid file type detected: ' . $realMime . '. Allowed: JPG, PNG, GIF, WEBP, ICO.';
+        error_log('[JMedi Upload] ' . $err);
+        return $err;
+    }
+    if ($file['size'] > 10 * 1024 * 1024) {
+        $err = 'File too large (' . round($file['size'] / 1024 / 1024, 1) . ' MB). Max 10 MB.';
+        error_log('[JMedi Upload] ' . $err);
+        return $err;
+    }
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if (!in_array($ext, $allowedExts)) return null;
+    if (!in_array($ext, $allowedExts)) {
+        $ext = explode('/', $realMime)[1] ?? 'jpg';
+        $ext = str_replace(['jpeg','x-icon','vnd.microsoft.icon'], ['jpg','ico','ico'], $ext);
+    }
 
     $filename = bin2hex(random_bytes(16)) . '.' . $ext;
     $filepath = $uploadDir . $filename;
 
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        error_log('[JMedi Upload] SUCCESS: ' . $filepath);
         return '/assets/' . $dir . '/' . $filename;
     }
-    return null;
+
+    $err = 'move_uploaded_file() failed. Target: ' . $filepath . ' — check directory write permissions.';
+    error_log('[JMedi Upload] ' . $err);
+    return $err;
 }
 
 function getDoctorSchedules(PDO $pdo, int $doctorId): array {
