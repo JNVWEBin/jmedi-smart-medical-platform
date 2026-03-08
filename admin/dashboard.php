@@ -573,24 +573,34 @@ if (isDoctor()) {
         <h5 class="mb-0 fw-bold" style="color:var(--admin-text);"><i class="fas fa-user-md me-2" style="color:var(--admin-accent);"></i>Top Rated Doctors</h5>
         <a href="/admin/doctors.php" style="font-size:0.82rem;font-weight:600;color:var(--admin-accent);text-decoration:none;">View more &raquo;</a>
     </div>
-    <div class="row g-3">
-        <?php foreach ($topDoctors as $td): ?>
-        <div class="col-xl col-md-4 col-6">
-            <div class="doctor-card">
-                <?php if ($td['status']): ?><span class="doc-status-badge"></span><?php endif; ?>
-                <?php if ($td['photo']): ?>
-                <img src="<?= e($td['photo']) ?>" class="doc-avatar" alt="">
-                <?php else: ?>
-                <div class="doc-avatar-placeholder"><?= strtoupper(substr($td['name'], 0, 1)) ?></div>
-                <?php endif; ?>
-                <div class="doc-name">Dr. <?= e($td['name']) ?></div>
-                <div class="doc-spec"><?= e($td['specialization'] ?: $td['department_name'] ?: 'General') ?></div>
-                <?php if ($td['department_name']): ?>
-                <div class="doc-dept"><i class="fas fa-hospital me-1"></i><?= e($td['department_name']) ?></div>
-                <?php endif; ?>
+
+    <div class="docs-slider-outer">
+        <div class="docs-slider" id="docsSlider">
+            <?php foreach ($topDoctors as $idx => $td): ?>
+            <div class="docs-slide-item">
+                <div class="doctor-card">
+                    <?php if ($td['status']): ?><span class="doc-status-badge"></span><?php endif; ?>
+                    <?php if ($td['photo']): ?>
+                    <img src="<?= e($td['photo']) ?>" class="doc-avatar" alt="">
+                    <?php else: ?>
+                    <div class="doc-avatar-placeholder"><?= strtoupper(substr($td['name'], 0, 1)) ?></div>
+                    <?php endif; ?>
+                    <div class="doc-name">Dr. <?= e($td['name']) ?></div>
+                    <div class="doc-spec"><?= e($td['specialization'] ?: $td['department_name'] ?: 'General') ?></div>
+                    <?php if ($td['department_name']): ?>
+                    <div class="doc-dept"><i class="fas fa-hospital me-1"></i><?= e($td['department_name']) ?></div>
+                    <?php endif; ?>
+                </div>
             </div>
+            <?php endforeach; ?>
         </div>
-        <?php endforeach; ?>
+
+        <!-- Mobile slider dots -->
+        <div class="docs-dots d-md-none" id="docsDots">
+            <?php foreach ($topDoctors as $idx => $td): ?>
+            <span class="docs-dot <?= $idx === 0 ? 'active' : '' ?>" data-index="<?= $idx ?>"></span>
+            <?php endforeach; ?>
+        </div>
     </div>
 </div>
 <?php endif; ?>
@@ -746,6 +756,42 @@ new Chart(ctx, {
         }
     }
 });
+
+// Top Rated Doctors — mobile slider dots
+(function() {
+    const slider = document.getElementById('docsSlider');
+    const dots   = document.querySelectorAll('.docs-dot');
+    if (!slider || !dots.length) return;
+
+    function getActiveIndex() {
+        const items = slider.querySelectorAll('.docs-slide-item');
+        if (!items.length) return 0;
+        const sliderLeft = slider.getBoundingClientRect().left;
+        let closest = 0, minDist = Infinity;
+        items.forEach((el, i) => {
+            const dist = Math.abs(el.getBoundingClientRect().left - sliderLeft);
+            if (dist < minDist) { minDist = dist; closest = i; }
+        });
+        return closest;
+    }
+
+    function updateDots(idx) {
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+
+    slider.addEventListener('scroll', () => {
+        updateDots(getActiveIndex());
+    }, { passive: true });
+
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+            const items = slider.querySelectorAll('.docs-slide-item');
+            if (items[i]) {
+                slider.scrollTo({ left: items[i].offsetLeft - slider.offsetLeft, behavior: 'smooth' });
+            }
+        });
+    });
+})();
 </script>
 
 <?php } ?>
