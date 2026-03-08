@@ -27,7 +27,7 @@ function getSetting(PDO $pdo, string $key, string $default = ''): string {
 }
 
 function updateSetting(PDO $pdo, string $key, string $value): void {
-    $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value) ON CONFLICT (setting_key) DO UPDATE SET setting_value = :value2");
+    $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value) ON DUPLICATE KEY UPDATE setting_value = :value2");
     $stmt->execute([':key' => $key, ':value' => $value, ':value2' => $value]);
 }
 
@@ -89,7 +89,7 @@ function getAppointments(PDO $pdo, ?string $status = null, ?string $search = nul
         $params[':status'] = $status;
     }
     if ($search) {
-        $conditions[] = "(a.patient_name ILIKE :search OR a.email ILIKE :search2 OR a.phone ILIKE :search3)";
+        $conditions[] = "(a.patient_name LIKE :search OR a.email LIKE :search2 OR a.phone LIKE :search3)";
         $params[':search'] = "%$search%";
         $params[':search2'] = "%$search%";
         $params[':search3'] = "%$search%";
@@ -177,7 +177,7 @@ function getHomeSection(PDO $pdo, string $key): array {
 function saveHomeSection(PDO $pdo, string $key, array $data): bool {
     try {
         $json = json_encode($data);
-        $stmt = $pdo->prepare("INSERT INTO home_sections (section_key, section_data, updated_at) VALUES (:key, :data, CURRENT_TIMESTAMP) ON CONFLICT (section_key) DO UPDATE SET section_data = :data2, updated_at = CURRENT_TIMESTAMP");
+        $stmt = $pdo->prepare("INSERT INTO home_sections (section_key, section_data, updated_at) VALUES (:key, :data, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE section_data = :data2, updated_at = CURRENT_TIMESTAMP");
         $stmt->execute([':key' => $key, ':data' => $json, ':data2' => $json]);
         return true;
     } catch (Exception $e) {
@@ -284,7 +284,7 @@ function getAvailableSlots(PDO $pdo, int $doctorId, string $date): array {
 
 function saveDoctorSchedule(PDO $pdo, int $doctorId, int $dayOfWeek, string $sessionLabel, array $data): bool {
     try {
-        $stmt = $pdo->prepare("INSERT INTO doctor_schedules (doctor_id, day_of_week, session_label, start_time, end_time, slot_duration_minutes, is_active) VALUES (:did, :dow, :label, :start, :end, :dur, :active) ON CONFLICT (doctor_id, day_of_week, session_label) DO UPDATE SET start_time = :start2, end_time = :end2, slot_duration_minutes = :dur2, is_active = :active2");
+        $stmt = $pdo->prepare("INSERT INTO doctor_schedules (doctor_id, day_of_week, session_label, start_time, end_time, slot_duration_minutes, is_active) VALUES (:did, :dow, :label, :start, :end, :dur, :active) ON DUPLICATE KEY UPDATE start_time = :start2, end_time = :end2, slot_duration_minutes = :dur2, is_active = :active2");
         $stmt->execute([
             ':did' => $doctorId, ':dow' => $dayOfWeek, ':label' => $sessionLabel,
             ':start' => $data['start_time'], ':end' => $data['end_time'],
