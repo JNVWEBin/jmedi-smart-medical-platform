@@ -12,6 +12,90 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+        <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div class="modal-body text-center p-5">
+                <div style="width:72px;height:72px;background:#fff0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+                    <i class="fas fa-trash-alt" style="font-size:1.8rem;color:#dc3545;"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="font-size:1.25rem;">Delete Confirmation</h5>
+                <p class="text-muted mb-4" id="deleteConfirmText">Are you sure you want to delete this item? This action cannot be undone.</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 fw-semibold" data-bs-dismiss="modal" style="border-radius:10px;min-width:110px;">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </button>
+                    <button type="button" id="deleteConfirmBtn" class="btn btn-danger px-4 fw-semibold" style="border-radius:10px;min-width:110px;">
+                        <i class="fas fa-trash me-1"></i> Yes, Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:9999;">
+    <div id="adminToast" class="toast align-items-center border-0 text-white" role="alert" style="border-radius:12px;min-width:280px;background:linear-gradient(135deg,#198754,#20c997);">
+        <div class="d-flex align-items-center px-3 py-3">
+            <i class="fas fa-check-circle me-2" style="font-size:1.2rem;"></i>
+            <div id="adminToastMsg" class="toast-body p-0 fw-semibold"></div>
+            <button type="button" class="btn-close btn-close-white ms-auto flex-shrink-0" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var _pendingForm = null;
+    var _modal = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        _modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-delete-trigger]');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            _pendingForm = btn.closest('form');
+            var label = btn.getAttribute('data-delete-label') || 'this item';
+            document.getElementById('deleteConfirmText').textContent =
+                'Are you sure you want to delete ' + label + '? This action cannot be undone.';
+            _modal.show();
+        });
+
+        document.getElementById('deleteConfirmBtn').addEventListener('click', function() {
+            _modal.hide();
+            if (_pendingForm) {
+                _pendingForm.submit();
+                _pendingForm = null;
+            }
+        });
+
+        var params = new URLSearchParams(window.location.search);
+        var msg = params.get('msg');
+        var messages = {
+            'deleted': 'Item deleted successfully.',
+            'toggled': 'Status updated successfully.',
+            'saved':   'Changes saved successfully.',
+            'updated': 'Record updated successfully.'
+        };
+        if (msg && messages[msg]) {
+            var toastEl = document.getElementById('adminToast');
+            document.getElementById('adminToastMsg').textContent = messages[msg];
+            var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+            var url = new URL(window.location.href);
+            url.searchParams.delete('msg');
+            window.history.replaceState({}, '', url.toString());
+        }
+    });
+})();
+</script>
+
 <script>
 (function() {
     var sidebar = document.getElementById('adminSidebar');
