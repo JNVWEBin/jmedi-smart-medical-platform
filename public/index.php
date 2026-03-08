@@ -497,7 +497,7 @@ $statItems = $statsData['items'] ?? [
 <?php endif; ?>
 
 <?php if ($isVisible('our_videos') && !empty($activeVideos)): ?>
-<section class="section-padding" style="background:var(--light-bg);">
+<section class="section-padding">
     <div class="container">
         <div class="section-title fade-in">
             <span class="subtitle"><i class="fab fa-youtube me-1" style="color:#ff0000;"></i>Watch &amp; Learn</span>
@@ -506,28 +506,35 @@ $statItems = $statsData['items'] ?? [
             <p><?= e($videosData['subtitle']) ?></p>
             <?php endif; ?>
         </div>
-        <div class="swiper video-swiper">
+
+        <div class="swiper video-news-swiper">
             <div class="swiper-wrapper">
-                <?php foreach ($activeVideos as $vid): ?>
+                <?php foreach ($activeVideos as $i => $vid): ?>
                 <div class="swiper-slide">
-                    <div class="testimonial-card video-card-t" onclick="openVideoModal('<?= e($vid['id']) ?>', '<?= e(addslashes($vid['title'])) ?>')">
-                        <div class="vid-thumb-wrap">
+                    <div class="card blog-card vid-news-card" onclick="openVideoModal('<?= e($vid['id']) ?>', '<?= e(addslashes($vid['title'])) ?>')">
+                        <div class="blog-img">
                             <img src="https://img.youtube.com/vi/<?= e($vid['id']) ?>/maxresdefault.jpg"
                                  onerror="this.src='https://img.youtube.com/vi/<?= e($vid['id']) ?>/hqdefault.jpg'"
                                  alt="<?= e($vid['title']) ?>">
-                            <div class="vid-play-btn">
+                            <div class="vid-news-play">
                                 <i class="fab fa-youtube"></i>
                             </div>
+                            <span class="blog-date-badge" style="background:rgba(255,0,0,0.88);">
+                                <i class="fas fa-play me-1"></i>Video
+                            </span>
                         </div>
-                        <div class="vid-card-body">
-                            <h6 class="vid-card-title"><?= e($vid['title']) ?></h6>
-                            <span class="vid-watch-tag"><i class="fas fa-play-circle me-1"></i>Watch Video</span>
+                        <div class="card-body">
+                            <div class="blog-meta">
+                                <i class="fab fa-youtube"></i> YouTube
+                            </div>
+                            <h5><?= e($vid['title']) ?></h5>
+                            <span class="read-more">Watch Video <i class="fas fa-arrow-right"></i></span>
                         </div>
                     </div>
                 </div>
                 <?php endforeach; ?>
             </div>
-            <div class="swiper-pagination vid-swiper-pagination"></div>
+            <div class="swiper-pagination vid-news-pagination"></div>
         </div>
     </div>
 </section>
@@ -550,50 +557,30 @@ $statItems = $statsData['items'] ?? [
 </div>
 
 <style>
-.video-card-t {
-    cursor: pointer;
-    padding: 0;
-    overflow: hidden;
-    transition: transform 0.28s, box-shadow 0.28s;
-    user-select: none;
-}
-.video-card-t::before { display: none; }
-.video-card-t:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(0,0,0,0.14); }
-.vid-thumb-wrap {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 16/9;
-    background: #0d0d1a;
-}
-.vid-thumb-wrap img { width:100%; height:100%; object-fit:cover; display:block; transition: transform 0.4s; }
-.video-card-t:hover .vid-thumb-wrap img { transform: scale(1.05); }
-.vid-play-btn {
+.vid-news-card { cursor: pointer; }
+.vid-news-card .blog-img { position: relative; height: 220px; }
+.vid-news-card .blog-img img { width:100%; height:100%; object-fit:cover; transition: transform 0.5s; display:block; }
+.vid-news-card:hover .blog-img img { transform: scale(1.08); }
+.vid-news-play {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.25);
+    background: rgba(0,0,0,0.2);
     transition: background 0.3s;
 }
-.video-card-t:hover .vid-play-btn { background: rgba(0,0,0,0.45); }
-.vid-play-btn i {
-    font-size: 3.5rem;
-    color: #fff;
+.vid-news-card:hover .vid-news-play { background: rgba(0,0,0,0.42); }
+.vid-news-play i {
+    font-size: 3rem; color: #fff;
     filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
     transition: transform 0.25s, color 0.25s;
 }
-.video-card-t:hover .vid-play-btn i { transform: scale(1.12); color: #ff2222; }
-.vid-card-body { padding: 1.2rem 1.5rem 1.5rem; }
-.vid-card-title {
-    font-weight: 700; font-size: 1rem;
-    color: var(--text-heading);
-    margin-bottom: 0.6rem; line-height: 1.45;
+.vid-news-card:hover .vid-news-play i { transform: scale(1.15); color: #ff2222; }
+.video-news-swiper { padding-bottom: 2.8rem !important; }
+.vid-news-pagination { bottom: 0 !important; }
+.vid-news-pagination .swiper-pagination-bullet-active { background: var(--primary); }
+@media (min-width: 992px) {
+    .vid-news-pagination { display: none; }
+    .video-news-swiper { padding-bottom: 0 !important; }
 }
-.vid-watch-tag {
-    font-size: 0.8rem; font-weight: 600;
-    color: var(--primary);
-    letter-spacing: 0.3px;
-}
-.video-swiper { padding-bottom: 2.5rem !important; }
-.vid-swiper-pagination .swiper-pagination-bullet-active { background: var(--primary); }
 </style>
 
 <script>
@@ -606,15 +593,14 @@ function openVideoModal(videoId, title) {
 document.getElementById('videoModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('videoModalIframe').src = '';
 });
-new Swiper('.video-swiper', {
+new Swiper('.video-news-swiper', {
     slidesPerView: 1,
-    spaceBetween: 30,
+    spaceBetween: 24,
     loop: false,
-    autoplay: { delay: 5000, disableOnInteraction: false },
-    pagination: { el: '.vid-swiper-pagination', clickable: true },
+    pagination: { el: '.vid-news-pagination', clickable: true },
     breakpoints: {
-        768: { slidesPerView: 2 },
-        1024: { slidesPerView: 3 }
+        576: { slidesPerView: 2 },
+        992: { slidesPerView: 3 }
     }
 });
 </script>
