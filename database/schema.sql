@@ -202,7 +202,11 @@ INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('linkedin',         'https://linkedin.com/company/jmedi'),
 ('primary_color',    '#0D6EFD'),
 ('secondary_color',  '#20C997'),
-('footer_text',      '© 2026 JMedi. All Rights Reserved. Powered by JNVWeb')
+('footer_text',      '© 2026 JMedi. All Rights Reserved. Powered by JNVWeb'),
+('whatsapp_number',  '918001234567'),
+('currency_symbol',  '₹'),
+('meta_description', 'JMedi Smart Medical Platform — Advanced healthcare with board-certified doctors.'),
+('google_maps_embed', '')
 ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`);
 
 INSERT IGNORE INTO `departments` (`name`, `slug`, `description`, `icon`, `services`) VALUES
