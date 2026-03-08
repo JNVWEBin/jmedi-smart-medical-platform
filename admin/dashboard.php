@@ -10,203 +10,310 @@ if (isDoctor()) {
     $doctorInfo = $doctorInfo->fetch();
 
     $today = date('Y-m-d');
-    $todayAppts = $pdo->prepare("SELECT a.*, dep.name as department_name FROM appointments a LEFT JOIN departments dep ON a.department_id = dep.department_id WHERE a.doctor_id = :d AND a.appointment_date = :t ORDER BY a.appointment_time ASC");
+
+    $todayAppts = $pdo->prepare("SELECT * FROM appointments WHERE doctor_id = :d AND appointment_date = :t ORDER BY appointment_time ASC");
     $todayAppts->execute([':d' => $docId, ':t' => $today]);
     $todayAppts = $todayAppts->fetchAll();
-
-    $stTotal = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d");
-    $stTotal->execute([':d' => $docId]);
-    $myTotalAppts = (int)$stTotal->fetchColumn();
-
-    $stPend = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'pending'");
-    $stPend->execute([':d' => $docId]);
-    $myPending = (int)$stPend->fetchColumn();
-
-    $stConf = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'confirmed'");
-    $stConf->execute([':d' => $docId]);
-    $myConfirmed = (int)$stConf->fetchColumn();
-
-    $stComp = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'completed'");
-    $stComp->execute([':d' => $docId]);
-    $myCompleted = (int)$stComp->fetchColumn();
-
     $myTodayCount = count($todayAppts);
 
-    $upcomingAppts = $pdo->prepare("SELECT a.*, dep.name as department_name FROM appointments a LEFT JOIN departments dep ON a.department_id = dep.department_id WHERE a.doctor_id = :d AND a.appointment_date >= :t AND a.status IN ('pending','confirmed') ORDER BY a.appointment_date ASC, a.appointment_time ASC LIMIT 10");
-    $upcomingAppts->execute([':d' => $docId, ':t' => $today]);
-    $upcomingAppts = $upcomingAppts->fetchAll();
+    $stTotal = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d");
+    $stTotal->execute([':d' => $docId]); $myTotalAppts = (int)$stTotal->fetchColumn();
 
-    $mySchedule = $pdo->prepare("SELECT * FROM doctor_schedules WHERE doctor_id = :d AND is_active = 1 ORDER BY day_of_week ASC");
-    $mySchedule->execute([':d' => $docId]);
-    $mySchedule = $mySchedule->fetchAll();
+    $stPend = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'pending'");
+    $stPend->execute([':d' => $docId]); $myPending = (int)$stPend->fetchColumn();
+
+    $stConf = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'confirmed'");
+    $stConf->execute([':d' => $docId]); $myConfirmed = (int)$stConf->fetchColumn();
+
+    $stComp = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'completed'");
+    $stComp->execute([':d' => $docId]); $myCompleted = (int)$stComp->fetchColumn();
+
+    $stCanc = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'cancelled'");
+    $stCanc->execute([':d' => $docId]); $myCancelled = (int)$stCanc->fetchColumn();
+
+    $nextPatient = $pdo->prepare("SELECT * FROM appointments WHERE doctor_id = :d AND appointment_date >= :t AND status IN ('pending','confirmed') ORDER BY appointment_date ASC, appointment_time ASC LIMIT 1");
+    $nextPatient->execute([':d' => $docId, ':t' => $today]);
+    $nextPatient = $nextPatient->fetch();
+
+    $pendingRequests = $pdo->prepare("SELECT * FROM appointments WHERE doctor_id = :d AND status = 'pending' ORDER BY created_at DESC LIMIT 5");
+    $pendingRequests->execute([':d' => $docId]);
+    $pendingRequests = $pendingRequests->fetchAll();
+
+    $dayOfWeek = date('N');
+    $weekStart = date('Y-m-d', strtotime('-' . ($dayOfWeek - 1) . ' days'));
+    $calDays = [];
+    for ($i = 0; $i < 7; $i++) {
+        $d = date('Y-m-d', strtotime("+$i days", strtotime($weekStart)));
+        $calDays[] = ['date' => $d, 'num' => date('j', strtotime($d)), 'name' => strtolower(substr(date('D', strtotime($d)), 0, 2)), 'active' => $d === $today];
+    }
+
+    $drName = $doctorInfo['name'] ?? $_SESSION['admin_name'];
+    $drName = preg_replace('/^Dr\.?\s*/i', '', $drName);
 ?>
 
-<div class="greeting-section d-flex justify-content-between align-items-center flex-wrap gap-2">
+<div class="greeting-section d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
     <div>
-        <?php
-        $drName = $doctorInfo['name'] ?? $_SESSION['admin_name'];
-        $drName = preg_replace('/^Dr\.?\s*/i', '', $drName);
-        ?>
-        <h4>Welcome, Dr. <?= e($drName) ?> 👋</h4>
-        <p><?= e($doctorInfo['specialization'] ?? 'Doctor') ?> — <?= e($doctorInfo['department_name'] ?? '') ?></p>
+        <h4>Welcome back, Dr. <?= e($drName) ?> 👋</h4>
+        <p><?= e($doctorInfo['specialization'] ?? 'Doctor') ?><?= $doctorInfo['department_name'] ? ' — ' . e($doctorInfo['department_name']) : '' ?></p>
     </div>
-    <div class="greeting-date">
-        <i class="fas fa-calendar-alt"></i>
-        <?= date('l, jS F') ?>
-    </div>
+    <div class="greeting-date"><i class="fas fa-calendar-alt"></i> <?= date('l, jS F Y') ?></div>
 </div>
 
+<!-- Top Stats -->
 <div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card highlight">
-            <div class="stat-icon-wrap" style="background:rgba(255,255,255,0.15);">
-                <i class="fas fa-calendar-day" style="color:#fff;"></i>
-            </div>
-            <div class="stat-label">Today's Appointments</div>
-            <div class="stat-number"><?= $myTodayCount ?></div>
-            <div class="stat-trend" style="color:rgba(255,255,255,0.8);">
-                <i class="fas fa-clock"></i> <?= date('M d, Y') ?>
+    <div class="col-md-4">
+        <div class="dr-stat-card" style="background:#eef4ff;">
+            <div class="dr-stat-icon" style="background:#c7d9ff;color:#3b5bdb;"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="dr-stat-label">Total Patients</div>
+                <div class="dr-stat-num"><?= $myTotalAppts ?></div>
+                <div class="dr-stat-sub">Till today</div>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card">
-            <div class="stat-icon-wrap" style="background:rgba(245,158,11,0.12);">
-                <i class="fas fa-hourglass-half" style="color:#f59e0b;"></i>
-            </div>
-            <div class="stat-label">Pending</div>
-            <div class="stat-number"><?= $myPending ?></div>
-            <div class="stat-trend">
-                <i class="fas fa-exclamation-circle text-warning"></i> awaiting review
+    <div class="col-md-4">
+        <div class="dr-stat-card" style="background:#f0fdf4;">
+            <div class="dr-stat-icon" style="background:#bbf7d0;color:#15803d;"><i class="fas fa-user-check"></i></div>
+            <div>
+                <div class="dr-stat-label">Today's Patients</div>
+                <div class="dr-stat-num"><?= str_pad($myTodayCount, 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="dr-stat-sub"><?= date('d M Y') ?></div>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card">
-            <div class="stat-icon-wrap" style="background:rgba(34,197,94,0.12);">
-                <i class="fas fa-check-circle" style="color:var(--admin-accent);"></i>
-            </div>
-            <div class="stat-label">Confirmed</div>
-            <div class="stat-number"><?= $myConfirmed ?></div>
-            <div class="stat-trend up">
-                <i class="fas fa-arrow-up"></i> active
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card">
-            <div class="stat-icon-wrap" style="background:rgba(59,130,246,0.12);">
-                <i class="fas fa-clipboard-check" style="color:#3b82f6;"></i>
-            </div>
-            <div class="stat-label">Total Patients</div>
-            <div class="stat-number"><?= $myTotalAppts ?></div>
-            <div class="stat-trend up">
-                <i class="fas fa-check"></i> <?= $myCompleted ?> completed
+    <div class="col-md-4">
+        <div class="dr-stat-card" style="background:#fdf4ff;">
+            <div class="dr-stat-icon" style="background:#e9d5ff;color:#7c3aed;"><i class="fas fa-calendar-check"></i></div>
+            <div>
+                <div class="dr-stat-label">Today's Appointments</div>
+                <div class="dr-stat-num"><?= str_pad($myTodayCount, 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="dr-stat-sub"><?= date('d M Y') ?></div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Middle Row -->
 <div class="row g-3 mb-4">
-    <div class="col-xl-8">
-        <div class="table-card">
+    <!-- Donut Chart -->
+    <div class="col-xl-4">
+        <div class="table-card h-100">
+            <h6 class="fw-bold mb-3"><i class="fas fa-chart-pie me-2" style="color:var(--admin-accent);"></i>Patient Summary</h6>
+            <div style="position:relative;height:180px;display:flex;align-items:center;justify-content:center;">
+                <canvas id="drDonutChart" style="max-height:180px;"></canvas>
+            </div>
+            <div class="mt-3 d-flex flex-column gap-2">
+                <div class="dr-legend-item"><span class="dr-legend-dot" style="background:#e5e7eb;"></span>Pending<span class="ms-auto fw-bold"><?= $myPending ?></span></div>
+                <div class="dr-legend-item"><span class="dr-legend-dot" style="background:#f59e0b;"></span>Confirmed<span class="ms-auto fw-bold"><?= $myConfirmed ?></span></div>
+                <div class="dr-legend-item"><span class="dr-legend-dot" style="background:#22c55e;"></span>Completed<span class="ms-auto fw-bold"><?= $myCompleted ?></span></div>
+                <div class="dr-legend-item"><span class="dr-legend-dot" style="background:#ef4444;"></span>Cancelled<span class="ms-auto fw-bold"><?= $myCancelled ?></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Appointments -->
+    <div class="col-xl-4">
+        <div class="table-card h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0"><i class="fas fa-calendar-day me-2" style="color:var(--admin-accent);"></i>Today's Schedule</h5>
-                <span class="badge bg-primary" style="border-radius:8px;padding:0.4em 0.8em;"><?= $myTodayCount ?> appointment(s)</span>
+                <h6 class="fw-bold mb-0"><i class="fas fa-calendar-day me-2" style="color:var(--admin-accent);"></i>Today's Appointments</h6>
+                <span class="badge" style="background:rgba(34,197,94,0.12);color:#15803d;border-radius:20px;padding:0.3em 0.7em;font-size:0.75rem;"><?= $myTodayCount ?> total</span>
             </div>
             <?php if (empty($todayAppts)): ?>
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-calendar-check" style="font-size:2.5rem;opacity:0.3;"></i>
-                <p class="mt-2 mb-0">No appointments scheduled for today</p>
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-calendar-check" style="font-size:2rem;opacity:0.25;"></i>
+                <p class="mt-2 mb-0 small">No appointments today</p>
             </div>
             <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Patient</th>
-                            <th>Phone</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($todayAppts as $ta): ?>
-                        <tr>
-                            <td><strong><?= $ta['appointment_time'] ? date('h:i A', strtotime($ta['appointment_time'])) : '--' ?></strong></td>
-                            <td><?= e($ta['patient_name']) ?></td>
-                            <td><?= e($ta['phone'] ?? '-') ?></td>
-                            <td><span class="badge bg-light text-dark" style="border-radius:6px;"><?= e(ucfirst($ta['consultation_type'] ?? 'in-person')) ?></span></td>
-                            <td><span class="badge badge-<?= $ta['status'] ?>" style="border-radius:6px;padding:0.35em 0.65em;"><?= ucfirst($ta['status']) ?></span></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <div style="max-height:300px;overflow-y:auto;">
+                <?php foreach ($todayAppts as $ta): ?>
+                <div class="dr-appt-row">
+                    <div class="dr-appt-avatar"><?= strtoupper(substr($ta['patient_name'], 0, 1)) ?></div>
+                    <div class="dr-appt-info">
+                        <div class="dr-appt-name"><?= e($ta['patient_name']) ?></div>
+                        <div class="dr-appt-note"><?= e($ta['appointment_notes'] ?? $ta['consultation_type'] ?? 'Consultation') ?></div>
+                    </div>
+                    <?php if ($ta['appointment_time']): ?>
+                    <div class="dr-appt-time"><?= date('h:i A', strtotime($ta['appointment_time'])) ?></div>
+                    <?php else: ?>
+                    <span class="dr-appt-status <?= $ta['status'] ?>"><?= ucfirst($ta['status']) ?></span>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <a href="/admin/appointments.php" class="d-block text-center mt-3" style="font-size:0.82rem;font-weight:600;color:var(--admin-accent);text-decoration:none;">See All &raquo;</a>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Next Patient Details -->
+    <div class="col-xl-4">
+        <div class="table-card h-100">
+            <h6 class="fw-bold mb-3"><i class="fas fa-user-clock me-2" style="color:var(--admin-accent);"></i>Next Patient</h6>
+            <?php if ($nextPatient): ?>
+            <div class="text-center mb-3">
+                <div class="dr-next-avatar"><?= strtoupper(substr($nextPatient['patient_name'], 0, 1)) ?></div>
+                <div class="fw-bold mt-2"><?= e($nextPatient['patient_name']) ?></div>
+                <div class="text-muted small"><?= e($nextPatient['appointment_notes'] ?? $nextPatient['consultation_type'] ?? 'Consultation') ?></div>
+            </div>
+            <div class="dr-info-grid">
+                <div class="dr-info-cell"><div class="dr-info-label">Date</div><div class="dr-info-val"><?= date('d M Y', strtotime($nextPatient['appointment_date'])) ?></div></div>
+                <div class="dr-info-cell"><div class="dr-info-label">Time</div><div class="dr-info-val"><?= $nextPatient['appointment_time'] ? date('h:i A', strtotime($nextPatient['appointment_time'])) : '—' ?></div></div>
+                <div class="dr-info-cell"><div class="dr-info-label">Type</div><div class="dr-info-val"><?= e(ucfirst($nextPatient['consultation_type'] ?? 'In-person')) ?></div></div>
+                <div class="dr-info-cell"><div class="dr-info-label">Status</div><div class="dr-info-val"><span class="rp-status <?= $nextPatient['status'] ?>"><?= ucfirst($nextPatient['status']) ?></span></div></div>
+            </div>
+            <?php if ($nextPatient['patient_email'] ?? ''): ?>
+            <div class="mt-3 d-flex gap-2">
+                <a href="mailto:<?= e($nextPatient['patient_email']) ?>" class="btn btn-sm btn-outline-primary flex-fill" style="border-radius:8px;font-size:0.8rem;"><i class="fas fa-envelope me-1"></i>Email</a>
+            </div>
+            <?php endif; ?>
+            <?php else: ?>
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-user-clock" style="font-size:2rem;opacity:0.25;"></i>
+                <p class="mt-2 mb-0 small">No upcoming patients</p>
             </div>
             <?php endif; ?>
         </div>
     </div>
+</div>
+
+<!-- Bottom Row -->
+<div class="row g-3 mb-4">
+    <!-- Patient Review -->
     <div class="col-xl-4">
-        <div class="dash-card">
-            <h6><i class="fas fa-clock me-2" style="color:var(--admin-accent);"></i>My Weekly Schedule</h6>
-            <?php if (empty($mySchedule)): ?>
-            <p class="text-muted text-center py-3 mb-0">No schedule configured</p>
-            <?php else: ?>
+        <div class="table-card h-100">
+            <h6 class="fw-bold mb-3"><i class="fas fa-star me-2" style="color:#f59e0b;"></i>Appointment Status</h6>
             <?php
-            $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            foreach ($mySchedule as $sched):
-                $dayLabel = $dayNames[$sched['day_of_week']] ?? '?';
+            $reviewTotal = max(1, $myTotalAppts);
+            $reviews = [
+                ['label' => 'Completed', 'count' => $myCompleted, 'color' => '#22c55e'],
+                ['label' => 'Confirmed', 'count' => $myConfirmed, 'color' => '#3b82f6'],
+                ['label' => 'Pending',   'count' => $myPending,   'color' => '#f59e0b'],
+                ['label' => 'Cancelled', 'count' => $myCancelled, 'color' => '#ef4444'],
+            ];
+            foreach ($reviews as $rv): $pct = round(($rv['count'] / $reviewTotal) * 100);
             ?>
-            <div class="schedule-item">
-                <span class="schedule-time" style="font-size:0.7rem;"><?= $dayLabel ?></span>
-                <div class="schedule-event">
-                    <h6 style="font-size:0.78rem;">
-                        <?= e($sched['session_label'] ?? '') ?>: <?= date('h:iA', strtotime($sched['start_time'])) ?> - <?= date('h:iA', strtotime($sched['end_time'])) ?>
-                    </h6>
-                    <small><?= $sched['slot_duration_minutes'] ?? 15 ?> min slots</small>
+            <div class="dr-review-row">
+                <span class="dr-review-label"><?= $rv['label'] ?></span>
+                <div class="dr-review-bar-wrap">
+                    <div class="dr-review-bar" style="width:<?= $pct ?>%;background:<?= $rv['color'] ?>;"></div>
+                </div>
+                <span class="dr-review-count"><?= $rv['count'] ?></span>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- Appointment Requests -->
+    <div class="col-xl-4">
+        <div class="table-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0"><i class="fas fa-bell me-2" style="color:#f59e0b;"></i>Appointment Requests</h6>
+                <?php if ($myPending > 0): ?><span class="badge bg-warning text-dark" style="border-radius:20px;"><?= $myPending ?> pending</span><?php endif; ?>
+            </div>
+            <?php if (empty($pendingRequests)): ?>
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-check-circle" style="font-size:2rem;opacity:0.25;color:#22c55e;"></i>
+                <p class="mt-2 mb-0 small">No pending requests</p>
+            </div>
+            <?php else: ?>
+            <?php foreach ($pendingRequests as $pr): ?>
+            <div class="dr-req-row">
+                <div class="dr-appt-avatar" style="width:36px;height:36px;font-size:0.8rem;"><?= strtoupper(substr($pr['patient_name'], 0, 1)) ?></div>
+                <div class="dr-appt-info">
+                    <div class="dr-appt-name"><?= e($pr['patient_name']) ?></div>
+                    <div class="dr-appt-note"><?= e($pr['appointment_notes'] ?? $pr['consultation_type'] ?? 'Consultation') ?></div>
+                </div>
+                <div class="d-flex gap-1">
+                    <form method="POST" action="/admin/appointments.php">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="appointment_id" value="<?= $pr['appointment_id'] ?>">
+                        <input type="hidden" name="apt_action" value="confirm">
+                        <button type="submit" class="dr-req-btn confirm" title="Confirm"><i class="fas fa-check"></i></button>
+                    </form>
+                    <form method="POST" action="/admin/appointments.php">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="appointment_id" value="<?= $pr['appointment_id'] ?>">
+                        <input type="hidden" name="apt_action" value="cancel">
+                        <button type="button" class="dr-req-btn cancel" title="Cancel" data-delete-trigger data-delete-label="appointment for <?= e($pr['patient_name']) ?>"><i class="fas fa-times"></i></button>
+                    </form>
                 </div>
             </div>
             <?php endforeach; ?>
+            <a href="/admin/appointments.php?status=pending" class="d-block text-center mt-3" style="font-size:0.82rem;font-weight:600;color:var(--admin-accent);text-decoration:none;">See All &raquo;</a>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="col-xl-4">
+        <div class="table-card h-100 calendar-widget">
+            <div class="cal-header">
+                <h6><i class="fas fa-calendar me-2" style="color:var(--admin-accent);"></i><?= date('F Y') ?></h6>
+            </div>
+            <div class="cal-days mb-3">
+                <?php foreach ($calDays as $cd): ?>
+                <div class="cal-day <?= $cd['active'] ? 'active' : '' ?>">
+                    <span class="day-num"><?= $cd['num'] ?></span>
+                    <span class="day-name"><?= $cd['name'] ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php
+            $todayHasAppts = !empty($todayAppts);
+            if ($todayHasAppts): ?>
+            <?php foreach (array_slice($todayAppts, 0, 3) as $ta): ?>
+            <div class="schedule-item">
+                <span class="schedule-time"><?= $ta['appointment_time'] ? date('H:i', strtotime($ta['appointment_time'])) : '--:--' ?></span>
+                <div class="schedule-event">
+                    <h6><?= e($ta['patient_name']) ?></h6>
+                    <small><?= ucfirst($ta['status']) ?></small>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php else: ?>
+            <div class="schedule-item">
+                <span class="schedule-time">--:--</span>
+                <div class="schedule-event"><h6>No appointments today</h6><small>Schedule is clear</small></div>
+            </div>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<div class="table-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0"><i class="fas fa-list-alt me-2" style="color:var(--admin-accent);"></i>Upcoming Appointments</h5>
-        <a href="/admin/appointments.php" class="btn btn-sm btn-outline-primary" style="border-radius:8px;">View All</a>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Patient</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Department</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($upcomingAppts)): ?>
-                <tr><td colspan="5" class="text-center text-muted py-4">No upcoming appointments</td></tr>
-                <?php else: ?>
-                <?php foreach ($upcomingAppts as $ua): ?>
-                <tr>
-                    <td><strong><?= e($ua['patient_name']) ?></strong></td>
-                    <td><?= formatDate($ua['appointment_date']) ?></td>
-                    <td><?= $ua['appointment_time'] ? date('h:i A', strtotime($ua['appointment_time'])) : '--' ?></td>
-                    <td><?= e($ua['department_name'] ?? '-') ?></td>
-                    <td><span class="badge badge-<?= $ua['status'] ?>" style="border-radius:6px;padding:0.35em 0.65em;"><?= ucfirst($ua['status']) ?></span></td>
-                </tr>
-                <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+    var ctx = document.getElementById('drDonutChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending','Confirmed','Completed','Cancelled'],
+            datasets: [{
+                data: [<?= $myPending ?>, <?= $myConfirmed ?>, <?= $myCompleted ?>, <?= $myCancelled ?>],
+                backgroundColor: ['#e5e7eb','#f59e0b','#22c55e','#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            cutout: '68%',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1a2e1f',
+                    cornerRadius: 8,
+                    padding: 10,
+                    titleFont: { family: 'Plus Jakarta Sans', weight: '600' },
+                    bodyFont: { family: 'Plus Jakarta Sans' }
+                }
+            }
+        }
+    });
+})();
+</script>
 
 <?php
 } else {
