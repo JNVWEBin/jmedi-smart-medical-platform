@@ -8,7 +8,7 @@ $search = $_GET['search'] ?? '';
 $departments = getDepartments($pdo);
 
 if ($search) {
-    $stmt = $pdo->prepare("SELECT d.*, dep.name as department_name FROM doctors d LEFT JOIN departments dep ON d.department_id = dep.department_id WHERE d.status = 1 AND (d.name ILIKE :s OR d.specialization ILIKE :s2) ORDER BY d.name");
+    $stmt = $pdo->prepare("SELECT d.*, dep.name as department_name FROM doctors d LEFT JOIN departments dep ON d.department_id = dep.department_id WHERE d.status = 1 AND (d.name LIKE :s OR d.specialization LIKE :s2) ORDER BY d.name");
     $stmt->execute([':s' => "%$search%", ':s2' => "%$search%"]);
     $doctors = $stmt->fetchAll();
 } else {
