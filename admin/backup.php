@@ -239,10 +239,10 @@ function formatFileSize(int $bytes): string {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0">Backup History</h5>
         <?php if (!empty($existingBackups)): ?>
-        <form method="POST" class="d-inline" onsubmit="return confirm('Delete all stored backup files?')">
+        <form method="POST" class="d-inline">
             <?= csrfField() ?>
             <input type="hidden" name="action" value="cleanup">
-            <button type="submit" class="btn btn-outline-danger btn-sm">
+            <button type="button" class="btn btn-outline-danger btn-sm" data-delete-trigger data-delete-label="all stored backup files">
                 <i class="fas fa-trash me-1"></i> Clean Up
             </button>
         </form>
