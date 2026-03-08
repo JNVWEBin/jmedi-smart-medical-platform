@@ -114,10 +114,10 @@ $allDepts = getDepartments($pdo, false);
                     <td><span class="badge <?= $d['status'] ? 'bg-success' : 'bg-secondary' ?>"><?= $d['status'] ? 'Active' : 'Inactive' ?></span></td>
                     <td>
                         <a href="/admin/departments.php?action=edit&id=<?= $d['department_id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                        <form method="POST" class="d-inline" onsubmit="return confirm('Delete this department?')">
+                        <form method="POST" class="d-inline">
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                             <input type="hidden" name="delete_id" value="<?= $d['department_id'] ?>">
-                            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-trigger data-delete-label="the '<?= e($d['name']) ?>' department"><i class="fas fa-trash"></i></button>
                         </form>
                     </td>
                 </tr>
