@@ -157,6 +157,21 @@ if ($preselectedDoctor) {
 .dept-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
 .dept-filter button { padding: 6px 16px; border: 2px solid #e0e0e0; border-radius: 20px; background: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
 .dept-filter button.active { border-color: #0d9488; background: #0d9488; color: #fff; }
+
+@media (max-width: 575.98px) {
+    .schedule-container { padding: 16px 12px; }
+    .day-cell { min-width: 0; flex: 1; padding: 6px 2px; }
+    .day-cell .day-num { font-size: 1.05rem; }
+    .day-cell .day-name { font-size: 0.65rem; }
+    .day-cell .day-month { font-size: 0.62rem; }
+    .week-picker { padding: 12px 8px; }
+    .slot-btn { min-width: 80px; padding: 8px 10px; font-size: 0.82rem; }
+    .fee-bar { flex-direction: column; align-items: stretch; gap: 12px; text-align: center; }
+    .fee-bar .continue-btn { width: 100%; padding: 13px; }
+    .doctor-select-grid { grid-template-columns: 1fr; }
+    .patient-form { padding: 18px 14px; }
+    .summary-card { padding: 16px 14px; }
+}
 </style>
 
 <div class="schedule-page">
