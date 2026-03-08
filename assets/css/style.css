@@ -1416,3 +1416,154 @@ a {
         padding: 30px 20px;
     }
 }
+
+/* ===== MOBILE NAV HAMBURGER ===== */
+.mob-hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 28px;
+    height: 20px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1100;
+    position: relative;
+}
+.ham-bar {
+    display: block;
+    width: 100%;
+    height: 2.5px;
+    background: var(--text-heading);
+    border-radius: 4px;
+    transition: transform 0.35s cubic-bezier(.77,0,.18,1), opacity 0.25s, width 0.3s;
+    transform-origin: center;
+}
+.mob-hamburger.is-open .ham-bar:nth-child(1) { transform: translateY(8.75px) rotate(45deg); }
+.mob-hamburger.is-open .ham-bar:nth-child(2) { opacity: 0; width: 0; }
+.mob-hamburger.is-open .ham-bar:nth-child(3) { transform: translateY(-8.75px) rotate(-45deg); }
+
+/* ===== MOBILE NAV DRAWER ===== */
+.mobile-nav-drawer {
+    width: 300px !important;
+    background: linear-gradient(160deg, #0f2b5c 0%, #0D6EFD 100%) !important;
+    border: none !important;
+    display: flex;
+    flex-direction: column;
+}
+.mob-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 1.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.mob-drawer-close {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    color: #fff;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.mob-drawer-close:hover { background: rgba(255,255,255,0.22); }
+.mob-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.4rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+}
+.mob-nav-links { display: flex; flex-direction: column; gap: 4px; margin-bottom: 1.5rem; }
+.mob-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+    font-size: 1.05rem;
+    text-decoration: none;
+    transition: background 0.22s, color 0.22s, transform 0.22s;
+    animation: mobLinkSlide 0.4s ease both;
+    animation-delay: calc(var(--i, 0) * 0.07s + 0.1s);
+    opacity: 0;
+}
+@keyframes mobLinkSlide {
+    from { opacity: 0; transform: translateX(28px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.offcanvas.show .mob-nav-link { opacity: 1; }
+.mob-nav-link:hover, .mob-nav-link.active {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    transform: translateX(4px);
+}
+.mob-nav-link.active { background: rgba(255,255,255,0.2); color: #fff; }
+.mob-link-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+.mob-nav-link.active .mob-link-icon,
+.mob-nav-link:hover .mob-link-icon { background: rgba(255,255,255,0.28); }
+.mob-drawer-cta { margin-top: auto; padding-top: 1rem; }
+.mob-appt-btn {
+    background: var(--secondary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.75rem;
+    transition: background 0.2s, transform 0.2s;
+}
+.mob-appt-btn:hover { background: var(--secondary-dark); color: #fff; transform: translateY(-2px); }
+.mob-login-btn {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.7rem;
+    transition: background 0.2s;
+}
+.mob-login-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.mob-drawer-footer {
+    padding: 1.2rem 1.6rem;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.mob-footer-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.mob-footer-item:hover { color: #fff; }
+.mob-footer-item i {
+    width: 18px;
+    text-align: center;
+    color: var(--secondary);
+}
+.mobile-nav-drawer .offcanvas-backdrop { background: rgba(15,27,42,0.65); }
