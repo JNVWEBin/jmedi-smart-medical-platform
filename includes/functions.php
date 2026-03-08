@@ -177,10 +177,15 @@ function getHomeSection(PDO $pdo, string $key): array {
 function saveHomeSection(PDO $pdo, string $key, array $data): bool {
     try {
         $json = json_encode($data);
-        $stmt = $pdo->prepare("INSERT INTO home_sections (section_key, section_data, updated_at) VALUES (:key, :data, CURRENT_TIMESTAMP) ON CONFLICT (section_key) DO UPDATE SET section_data = EXCLUDED.section_data, updated_at = CURRENT_TIMESTAMP");
-        $stmt->execute([':key' => $key, ':data' => $json]);
+        $upd = $pdo->prepare("UPDATE home_sections SET section_data = :data, updated_at = CURRENT_TIMESTAMP WHERE section_key = :key");
+        $upd->execute([':key' => $key, ':data' => $json]);
+        if ($upd->rowCount() === 0) {
+            $ins = $pdo->prepare("INSERT INTO home_sections (section_key, section_data, updated_at) VALUES (:key, :data, CURRENT_TIMESTAMP)");
+            $ins->execute([':key' => $key, ':data' => $json]);
+        }
         return true;
     } catch (Exception $e) {
+        error_log('saveHomeSection [' . $key . ']: ' . $e->getMessage());
         return false;
     }
 }
