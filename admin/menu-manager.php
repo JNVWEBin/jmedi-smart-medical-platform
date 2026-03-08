@@ -135,11 +135,11 @@ $menus = $pdo->query("SELECT * FROM menus ORDER BY menu_order ASC, id ASC")->fet
                             <button type="button" class="btn btn-sm menu-edit-btn" onclick="editMenuItem(<?= $menu['id'] ?>, '<?= e(addslashes($menu['menu_name'])) ?>', '<?= e(addslashes($menu['menu_link'])) ?>', '<?= e(addslashes($menu['menu_icon'])) ?>')" title="Edit">
                                 <i class="fas fa-pen"></i>
                             </button>
-                            <form method="POST" class="d-inline" onsubmit="return confirm('Delete this menu item?');">
+                            <form method="POST" class="d-inline">
                                 <?= csrfField() ?>
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="<?= $menu['id'] ?>">
-                                <button type="submit" class="btn btn-sm menu-delete-btn" title="Delete">
+                                <button type="button" class="btn btn-sm menu-delete-btn" title="Delete" data-delete-trigger data-delete-label="the '<?= e(addslashes($menu['menu_name'])) ?>' menu item">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
