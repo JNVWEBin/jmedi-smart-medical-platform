@@ -10,13 +10,13 @@ $db_url = getenv('DATABASE_URL');
 if ($db_url) {
     $parsed = parse_url($db_url);
     $host   = $parsed['host'] ?? 'localhost';
-    $port   = $parsed['port'] ?? 5432;
+    $port   = $parsed['port'] ?? 3306;
     $dbname = ltrim($parsed['path'] ?? '', '/');
     $user   = $parsed['user'] ?? '';
     $pass   = $parsed['pass'] ?? '';
 } else {
     $host   = 'localhost';
-    $port   = 5432;
+    $port   = 3306;
     $dbname = 'svaobtfy_jmedi';
     $user   = 'svaobtfy_jmedi';
     $pass   = 'sa1T4HXr@7602626264';
@@ -24,7 +24,7 @@ if ($db_url) {
 
 try {
     $pdo = new PDO(
-        "pgsql:host=$host;port=$port;dbname=$dbname",
+        "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
         $user,
         $pass,
         [
