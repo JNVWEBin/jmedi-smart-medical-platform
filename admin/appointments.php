@@ -567,11 +567,11 @@ function buildEmailLink(array $apt, string $siteName, string $currency): string 
                                 <button class="action-btn" style="background:#d1e7dd;color:#0f5132;" title="Confirm"><i class="fas fa-check"></i></button>
                             </form>
                             <?php endif; ?>
-                            <form method="POST" class="d-inline" onsubmit="return confirm('Delete this appointment?')">
+                            <form method="POST" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                 <input type="hidden" name="appointment_id" value="<?= $apt['appointment_id'] ?>">
                                 <input type="hidden" name="apt_action" value="delete">
-                                <button class="action-btn delete" title="Delete"><i class="fas fa-trash"></i></button>
+                                <button type="button" class="action-btn delete" title="Delete" data-delete-trigger data-delete-label="appointment #<?= $apt['appointment_id'] ?> for <?= e($apt['patient_name']) ?>"><i class="fas fa-trash"></i></button>
                             </form>
                         </div>
                     </td>
