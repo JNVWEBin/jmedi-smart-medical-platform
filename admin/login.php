@@ -298,15 +298,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 1rem;
         }
 
+        .back-to-site {
+            position: fixed;
+            top: 1.25rem;
+            left: 1.25rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+            color: #1e293b;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 30px;
+            padding: 0.45rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+            z-index: 100;
+        }
+        .back-to-site:hover {
+            background: #1a2e5e;
+            color: #fff;
+            border-color: #1a2e5e;
+            box-shadow: 0 4px 16px rgba(26,46,94,0.2);
+            transform: translateX(-2px);
+        }
+        .back-to-site i { font-size: 0.75rem; }
+
         @media (max-width: 680px) {
             .login-wrapper { flex-direction: column; max-width: 420px; min-height: auto; }
             .login-left { width: 100%; min-height: 200px; }
             .login-left-img { min-height: 120px; }
             .login-right { padding: 2rem 1.75rem; }
+            .back-to-site { top: 0.75rem; left: 0.75rem; font-size: 0.75rem; padding: 0.35rem 0.8rem; }
         }
     </style>
 </head>
 <body>
+
+<a href="/" class="back-to-site">
+    <i class="fas fa-arrow-left"></i> Back to Website
+</a>
+
 <div class="login-wrapper">
 
     <!-- Left panel -->
