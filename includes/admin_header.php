@@ -22,6 +22,10 @@ if (isDoctor()) {
     $stRecentPend = $pdo->prepare("SELECT patient_name, appointment_date, appointment_time, appointment_id FROM appointments WHERE doctor_id = :d AND status = 'pending' ORDER BY created_at DESC LIMIT 5");
     $stRecentPend->execute([':d' => $docId]);
     $recentPending = $stRecentPend->fetchAll();
+
+    $stSidebarDoc = $pdo->prepare("SELECT d.name, d.photo, d.specialization, d.qualification, dep.name AS department_name FROM doctors d LEFT JOIN departments dep ON d.department_id = dep.department_id WHERE d.doctor_id = :id");
+    $stSidebarDoc->execute([':id' => $docId]);
+    $sidebarDoctor = $stSidebarDoc->fetch();
 } else {
     $recentPending = $pdo->query("SELECT patient_name, appointment_date, appointment_time, appointment_id FROM appointments WHERE status = 'pending' ORDER BY created_at DESC LIMIT 5")->fetchAll();
 }
@@ -46,6 +50,29 @@ if (isDoctor()) {
                 <span>JMedi</span>
             </a>
         </div>
+
+        <?php if (isDoctor() && !empty($sidebarDoctor)): ?>
+        <div class="dr-sidebar-profile">
+            <?php
+            $drSidebarName = preg_replace('/^Dr\.?\s*/i', '', $sidebarDoctor['name']);
+            ?>
+            <?php if (!empty($sidebarDoctor['photo'])): ?>
+            <img src="<?= e($sidebarDoctor['photo']) ?>" class="dr-sb-photo" alt="Dr. <?= e($drSidebarName) ?>">
+            <?php else: ?>
+            <div class="dr-sb-avatar"><?= strtoupper(substr($drSidebarName, 0, 1)) ?></div>
+            <?php endif; ?>
+            <div class="dr-sb-name">Dr. <?= e($drSidebarName) ?></div>
+            <?php if (!empty($sidebarDoctor['specialization'])): ?>
+            <div class="dr-sb-spec"><?= e($sidebarDoctor['specialization']) ?></div>
+            <?php endif; ?>
+            <?php if (!empty($sidebarDoctor['qualification'])): ?>
+            <div class="dr-sb-qual"><?= e($sidebarDoctor['qualification']) ?></div>
+            <?php elseif (!empty($sidebarDoctor['department_name'])): ?>
+            <div class="dr-sb-qual"><?= e($sidebarDoctor['department_name']) ?></div>
+            <?php endif; ?>
+            <div class="dr-sb-divider"></div>
+        </div>
+        <?php endif; ?>
 
         <div class="sidebar-section-label" data-section="menu" role="button" tabindex="0" aria-expanded="true" aria-controls="section-menu"><span>Menu</span><i class="fas fa-chevron-down section-arrow"></i></div>
         <ul class="sidebar-nav" data-section-list="menu" id="section-menu">
