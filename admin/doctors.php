@@ -1,14 +1,27 @@
 <?php
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+requireLogin();
+requirePermission('doctors');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $pdo->prepare("DELETE FROM doctors WHERE doctor_id = :id")->execute([':id' => (int)$_POST['delete_id']]);
+    }
+    header('Location: /admin/doctors.php?msg=deleted');
+    exit;
+}
+
 $pageTitle = 'Manage Doctors';
 require_once __DIR__ . '/../includes/admin_header.php';
-requirePermission('doctors');
 
 $action = $_GET['action'] ?? 'list';
 $id = (int)($_GET['id'] ?? 0);
 $departments = getDepartments($pdo, false);
 $success = $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid form submission.';
     } else {
@@ -55,12 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = 'list';
         }
     }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-    $pdo->prepare("DELETE FROM doctors WHERE doctor_id = :id")->execute([':id' => (int)$_POST['delete_id']]);
-    header('Location: /admin/doctors.php?msg=deleted');
-    exit;
 }
 
 $editDoctor = null;
