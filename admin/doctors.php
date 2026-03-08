@@ -215,10 +215,10 @@ $allDoctors = getDoctors($pdo, null, false);
                     <td><span class="badge <?= $doc['status'] ? 'bg-success' : 'bg-secondary' ?>"><?= $doc['status'] ? 'Active' : 'Inactive' ?></span></td>
                     <td>
                         <a href="/admin/doctors.php?action=edit&id=<?= $doc['doctor_id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                        <form method="POST" class="d-inline" onsubmit="return confirm('Delete this doctor?')">
+                        <form method="POST" class="d-inline">
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                             <input type="hidden" name="delete_id" value="<?= $doc['doctor_id'] ?>">
-                            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-trigger data-delete-label="Dr. <?= e($doc['name']) ?>"><i class="fas fa-trash"></i></button>
                         </form>
                     </td>
                 </tr>
