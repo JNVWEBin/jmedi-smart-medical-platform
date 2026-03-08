@@ -179,8 +179,8 @@ CREATE INDEX IF NOT EXISTS `idx_appointments_date`       ON `appointments`(`appo
 CREATE INDEX IF NOT EXISTS `idx_posts_status`            ON `posts`(`status`);
 CREATE INDEX IF NOT EXISTS `idx_departments_slug`        ON `departments`(`slug`);
 
-INSERT IGNORE INTO `admins` (`username`, `password`, `email`, `full_name`)
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@jmedi.com', 'Administrator');
+INSERT IGNORE INTO `admins` (`username`, `password`, `email`, `full_name`, `role`, `permissions`)
+VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@jmedi.com', 'Administrator', 'superadmin', '{"all":true}');
 
 INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('site_name',        'JMedi – Smart Medical Platform'),
