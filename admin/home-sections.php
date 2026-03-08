@@ -559,8 +559,8 @@ if (isset($_GET['msg'])) {
                                     </td>
                                     <td>
                                         <a href="/admin/home-sections.php?action=edit&id=<?= $s['id'] ?>&tab=heroSlidesTab" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                                        <form method="POST" class="d-inline" onsubmit="return confirm('Delete this slide?')"><?= csrfField() ?><input type="hidden" name="action" value="hero_delete"><input type="hidden" name="delete_id" value="<?= $s['id'] ?>">
-                                            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                        <form method="POST" class="d-inline"><?= csrfField() ?><input type="hidden" name="action" value="hero_delete"><input type="hidden" name="delete_id" value="<?= $s['id'] ?>">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-trigger data-delete-label="the slide '<?= e($s['title']) ?>'"><i class="fas fa-trash"></i></button>
                                         </form>
                                     </td>
                                 </tr>
