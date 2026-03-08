@@ -77,6 +77,25 @@ $floatDoctors = getDoctors($pdo);
     <span>Book Now</span>
 </button>
 
+<!-- Mobile Fixed Footer CTA Bar -->
+<div class="mobile-cta-bar d-lg-none">
+    <button type="button" class="mob-cta-appt" data-bs-toggle="modal" data-bs-target="#appointmentModal">
+        <i class="fas fa-calendar-check"></i>
+        <span>Book Appointment</span>
+    </button>
+    <?php if ($whatsappNum): ?>
+    <a href="https://wa.me/<?= e($whatsappNum) ?>" target="_blank" class="mob-cta-wa">
+        <i class="fab fa-whatsapp"></i>
+        <span>WhatsApp Us</span>
+    </a>
+    <?php else: ?>
+    <a href="/public/contact.php" class="mob-cta-wa">
+        <i class="fas fa-envelope"></i>
+        <span>Contact Us</span>
+    </a>
+    <?php endif; ?>
+</div>
+
 <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 rounded-4 overflow-hidden">
@@ -218,32 +237,52 @@ $floatDoctors = getDoctors($pdo);
 .appointment-float:active {
     transform: translateY(-50%) scale(0.97);
 }
-@media (max-width: 575.98px) {
-    .appointment-float {
-        top: auto;
-        right: 50%;
-        bottom: 0;
-        transform: translateX(50%);
-        writing-mode: horizontal-tb;
-        border-radius: 14px 14px 0 0;
-        padding: 11px 22px;
-        box-shadow: 0 -3px 20px rgba(13,110,253,0.3);
-        font-size: 0.88rem;
-        letter-spacing: 0;
-    }
-    .appointment-float:hover {
-        right: 50%;
-        padding-right: 22px;
-        bottom: 2px;
-        box-shadow: 0 -5px 25px rgba(13,110,253,0.45);
-    }
-    .appointment-float:active {
-        transform: translateX(50%) scale(0.97);
-    }
-    .appointment-float i {
-        font-size: 1rem;
-    }
+@media (max-width: 991.98px) {
+    .appointment-float { display: none !important; }
+    .whatsapp-float    { display: none !important; }
+    body { padding-bottom: 68px; }
 }
+
+/* Mobile fixed footer CTA bar */
+.mobile-cta-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    z-index: 1055;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.mob-cta-appt,
+.mob-cta-wa {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 14px 10px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: filter 0.2s;
+    letter-spacing: 0.2px;
+}
+.mob-cta-appt {
+    background: var(--primary);
+    color: #fff;
+    border-right: 1px solid rgba(255,255,255,0.2);
+}
+.mob-cta-wa {
+    background: #25D366;
+    color: #fff;
+}
+.mob-cta-appt:hover { filter: brightness(1.1); color: #fff; }
+.mob-cta-wa:hover   { filter: brightness(1.08); color: #fff; }
+.mob-cta-appt i,
+.mob-cta-wa i { font-size: 1.15rem; }
 #appointmentModal .form-control,
 #appointmentModal .form-select {
     border-radius: 8px;
