@@ -16,6 +16,7 @@ $appointmentData = getHomeSection($pdo, 'appointment_section');
 $processData = getHomeSection($pdo, 'process_section');
 $statsData = getHomeSection($pdo, 'stats_section');
 $ctaReadyData = getHomeSection($pdo, 'cta_ready');
+$videosData = getHomeSection($pdo, 'our_videos') ?: ['title' => 'Our Latest Videos', 'subtitle' => 'Watch health tips, facility tours and expert talks', 'videos' => []];
 $secVis = getHomeSection($pdo, 'section_visibility');
 if (empty($secVis)) $secVis = [];
 $isVisible = function($key) use ($secVis) { return !isset($secVis[$key]) || !empty($secVis[$key]); };
@@ -289,6 +290,146 @@ $abtBtnLink = $aboutData['button_link'] ?? '/public/departments.php';
         </div>
     </div>
 </section>
+<?php endif; ?>
+
+<?php
+$activeVideos = array_values(array_filter($videosData['videos'] ?? [], fn($v) => !empty($v['active'])));
+if ($isVisible('our_videos') && !empty($activeVideos)):
+?>
+<section class="section-padding" style="background:#f8faff;">
+    <div class="container">
+        <div class="section-title fade-in">
+            <span class="subtitle"><i class="fab fa-youtube me-1" style="color:#ff0000;"></i>Watch &amp; Learn</span>
+            <h2><?= e($videosData['title'] ?? 'Our Latest Videos') ?></h2>
+            <?php if (!empty($videosData['subtitle'])): ?>
+            <p><?= e($videosData['subtitle']) ?></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="swiper video-swiper">
+            <div class="swiper-wrapper pb-3">
+                <?php foreach ($activeVideos as $vid): ?>
+                <div class="swiper-slide">
+                    <div class="video-card" onclick="openVideoModal('<?= e($vid['id']) ?>', '<?= e(addslashes($vid['title'])) ?>')">
+                        <div class="video-thumb">
+                            <img src="https://img.youtube.com/vi/<?= e($vid['id']) ?>/maxresdefault.jpg"
+                                 onerror="this.src='https://img.youtube.com/vi/<?= e($vid['id']) ?>/hqdefault.jpg'"
+                                 alt="<?= e($vid['title']) ?>">
+                            <div class="video-overlay">
+                                <div class="play-btn">
+                                    <i class="fab fa-youtube"></i>
+                                </div>
+                                <div class="watch-label">Watch Video</div>
+                            </div>
+                        </div>
+                        <div class="video-info">
+                            <h6><?= e($vid['title']) ?></h6>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="swiper-pagination video-pagination mt-2"></div>
+            <div class="swiper-button-prev video-prev"></div>
+            <div class="swiper-button-next video-next"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Video Popup Modal -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg">
+            <div class="modal-header border-0 px-4 pt-3 pb-0">
+                <h6 class="modal-title fw-bold" id="videoModalTitle"></h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 pt-2">
+                <div class="ratio ratio-16x9">
+                    <iframe id="videoModalIframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.video-card {
+    cursor: pointer;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.28s, box-shadow 0.28s;
+    user-select: none;
+}
+.video-card:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(0,0,0,0.14); }
+.video-thumb {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    background: #1a1a2e;
+}
+.video-thumb img { width:100%; height:100%; object-fit:cover; transition: transform 0.4s; display:block; }
+.video-card:hover .video-thumb img { transform: scale(1.05); }
+.video-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s;
+}
+.video-card:hover .video-overlay { opacity: 1; }
+.play-btn {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(255,0,0,0.9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; color: #fff;
+    box-shadow: 0 0 0 10px rgba(255,0,0,0.2);
+    transition: transform 0.2s;
+}
+.video-card:hover .play-btn { transform: scale(1.1); }
+.watch-label { color: #fff; font-size: 0.8rem; font-weight: 600; margin-top: 10px; letter-spacing: 0.5px; }
+.video-info { padding: 14px 16px 16px; }
+.video-info h6 { margin: 0; font-size: 0.9rem; font-weight: 700; color: #1e293b; line-height: 1.4; }
+.video-swiper { padding-bottom: 2.5rem !important; }
+.video-swiper .swiper-button-prev,
+.video-swiper .swiper-button-next {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    color: #1a2e5e;
+}
+.video-swiper .swiper-button-prev::after,
+.video-swiper .swiper-button-next::after { font-size: 0.85rem; font-weight: 900; }
+.video-swiper .swiper-pagination-bullet-active { background: #0D6EFD; }
+@media (max-width:576px) {
+    .play-btn { width: 46px; height: 46px; font-size: 1.4rem; }
+}
+</style>
+
+<script>
+function openVideoModal(videoId, title) {
+    document.getElementById('videoModalTitle').textContent = title;
+    document.getElementById('videoModalIframe').src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+    var modal = new bootstrap.Modal(document.getElementById('videoModal'));
+    modal.show();
+}
+document.getElementById('videoModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('videoModalIframe').src = '';
+});
+new Swiper('.video-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 20,
+    loop: false,
+    pagination: { el: '.video-pagination', clickable: true },
+    navigation: { nextEl: '.video-next', prevEl: '.video-prev' },
+    breakpoints: {
+        576: { slidesPerView: 2 },
+        992: { slidesPerView: 3 },
+        1200: { slidesPerView: 3 }
+    }
+});
+</script>
 <?php endif; ?>
 
 <?php if ($isVisible('cta_checkup')): ?>
