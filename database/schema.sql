@@ -179,8 +179,15 @@ CREATE INDEX IF NOT EXISTS `idx_appointments_date`       ON `appointments`(`appo
 CREATE INDEX IF NOT EXISTS `idx_posts_status`            ON `posts`(`status`);
 CREATE INDEX IF NOT EXISTS `idx_departments_slug`        ON `departments`(`slug`);
 
-INSERT IGNORE INTO `admins` (`username`, `password`, `email`, `full_name`, `role`, `permissions`)
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@jmedi.com', 'Administrator', 'superadmin', '{"all":true}');
+INSERT IGNORE INTO `admins` (`username`, `password`, `email`, `full_name`, `role`, `permissions`) VALUES
+('admin',     '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@jmedi.com',   'Administrator',    'superadmin', '{"all":true}'),
+('manager',   '$2y$10$ONVeUR4pDKbxLE5HrM0icuJObqXwoDS7/f1jt8pmXUjDW.1JVs15S', 'manager@jmedi.com', 'Site Manager',     'admin',      '{"doctors":true,"departments":true,"appointments":true,"blog":true,"testimonials":true,"settings":true}');
+
+INSERT IGNORE INTO `admins` (`username`, `password`, `email`, `full_name`, `role`, `permissions`, `doctor_id`) VALUES
+('dr.wilson', '$2y$10$EV5OGDxGwy/ghNNpzwNGquHyZGTU6LYBzY4CzRpTKiA3Djss.7OM6', 'wilson@jmedi.com',  'Dr. James Wilson', 'doctor',     '{}', 1);
+
+INSERT IGNORE INTO `patients` (`name`, `email`, `phone`, `password`, `date_of_birth`, `gender`, `address`) VALUES
+('John Patient', 'patient@jmedi.com', '+1-800-555-0100', '$2y$10$qvLYKh66Xv1WY01.qdAZW.laGmGYMLZwfnrSMHJ2TOSDb8d7OMe36', '1990-05-15', 'Male', '456 Patient Lane, Health City, HC 10002');
 
 INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('site_name',        'JMedi – Smart Medical Platform'),
