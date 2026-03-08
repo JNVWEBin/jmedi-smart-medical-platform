@@ -13,19 +13,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
     if ($action === 'export_csv' && !empty($_POST['export_table'])) {
         $exportTable = $_POST['export_table'];
-        $allowedTables = array_column($pdo->query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")->fetchAll(), 'tablename');
+        $allowedTables = array_column($pdo->query("SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' ORDER BY table_name")->fetchAll(), 'table_name');
         if (!in_array($exportTable, $allowedTables)) {
             die('Invalid table');
         }
 
-        $columns = $pdo->query("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = " . $pdo->quote($exportTable) . " ORDER BY ordinal_position")->fetchAll(PDO::FETCH_COLUMN);
+        $columns = $pdo->query("SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = " . $pdo->quote($exportTable) . " ORDER BY ordinal_position")->fetchAll(PDO::FETCH_COLUMN);
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $exportTable . '_' . date('Y-m-d_His') . '.csv"');
         $out = fopen('php://output', 'w');
         fputcsv($out, $columns);
 
-        $stmt = $pdo->query("SELECT * FROM \"" . $exportTable . "\"");
+        $stmt = $pdo->query("SELECT * FROM `" . $exportTable . "`");
         while ($row = $stmt->fetch()) {
             fputcsv($out, array_values($row));
         }
@@ -34,21 +34,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     }
 
     if ($action === 'db_backup') {
-        $dbUrl = getenv('DATABASE_URL');
         $tmpFile = tempnam(sys_get_temp_dir(), 'dbbackup_') . '.sql';
+        $h    = 'localhost';
+        $p    = 3306;
+        $dbn  = 'svaobtfy_jmedi';
+        $u    = 'svaobtfy_jmedi';
+        $pass = 'sa1T4HXr@7602626264';
 
-        if ($dbUrl) {
-            $cmd = "pg_dump " . escapeshellarg($dbUrl) . " > " . escapeshellarg($tmpFile) . " 2>&1";
-        } else {
-            $host = getenv('PGHOST') ?: 'localhost';
-            $port = getenv('PGPORT') ?: 5432;
-            $dbname = getenv('PGDATABASE') ?: 'postgres';
-            $user = getenv('PGUSER') ?: 'postgres';
-            $pass = getenv('PGPASSWORD') ?: '';
-            putenv("PGPASSWORD=$pass");
-            $cmd = "pg_dump -h " . escapeshellarg($host) . " -p " . escapeshellarg($port) . " -U " . escapeshellarg($user) . " " . escapeshellarg($dbname) . " > " . escapeshellarg($tmpFile) . " 2>&1";
-        }
-
+        $cmd = sprintf(
+            'mysqldump -h %s -P %s -u %s -p%s %s > %s 2>&1',
+            escapeshellarg($h),
+            escapeshellarg($p),
+            escapeshellarg($u),
+            escapeshellarg($pass),
+            escapeshellarg($dbn),
+            escapeshellarg($tmpFile)
+        );
         exec($cmd, $output, $returnCode);
 
         if ($returnCode === 0 && file_exists($tmpFile) && filesize($tmpFile) > 0) {
@@ -66,16 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 }
 
 $tables = $pdo->query("
-    SELECT t.tablename,
-           (SELECT COUNT(*) FROM information_schema.columns c WHERE c.table_schema = 'public' AND c.table_name = t.tablename) as column_count
-    FROM pg_tables t
-    WHERE t.schemaname = 'public'
-    ORDER BY t.tablename
+    SELECT table_name AS tablename,
+           (SELECT COUNT(*) FROM information_schema.columns c WHERE c.table_schema = DATABASE() AND c.table_name = t.table_name) AS column_count
+    FROM information_schema.tables t
+    WHERE t.table_schema = DATABASE() AND t.table_type = 'BASE TABLE'
+    ORDER BY t.table_name
 ")->fetchAll();
 
 foreach ($tables as &$t) {
     try {
-        $t['row_count'] = (int)$pdo->query("SELECT COUNT(*) FROM \"" . $t['tablename'] . "\"")->fetchColumn();
+        $t['row_count'] = (int)$pdo->query("SELECT COUNT(*) FROM `" . $t['tablename'] . "`")->fetchColumn();
     } catch (Exception $e) {
         $t['row_count'] = 0;
     }
@@ -93,38 +94,38 @@ if ($table) {
         $tableColumns = $pdo->query("
             SELECT column_name, data_type, is_nullable, column_default, character_maximum_length
             FROM information_schema.columns
-            WHERE table_schema = 'public' AND table_name = " . $pdo->quote($table) . "
+            WHERE table_schema = DATABASE() AND table_name = " . $pdo->quote($table) . "
             ORDER BY ordinal_position
         ")->fetchAll();
 
-        $countSql = "SELECT COUNT(*) FROM \"$table\"";
-        $dataSql = "SELECT * FROM \"$table\"";
-        $params = [];
+        $countSql = "SELECT COUNT(*) FROM `$table`";
+        $dataSql  = "SELECT * FROM `$table`";
+        $params   = [];
 
         if ($search !== '') {
             $textCols = array_filter($tableColumns, function($c) {
-                return in_array($c['data_type'], ['character varying', 'text', 'varchar', 'char', 'character']);
+                return in_array($c['data_type'], ['varchar', 'text', 'char', 'tinytext', 'mediumtext', 'longtext']);
             });
             if (!empty($textCols)) {
                 $searchClauses = [];
                 $i = 0;
                 foreach ($textCols as $col) {
                     $paramName = ':search' . $i;
-                    $searchClauses[] = "\"" . $col['column_name'] . "\"::text ILIKE " . $paramName;
+                    $searchClauses[] = "`" . $col['column_name'] . "` LIKE " . $paramName;
                     $params[$paramName] = '%' . $search . '%';
                     $i++;
                 }
                 $whereClause = " WHERE " . implode(' OR ', $searchClauses);
                 $countSql .= $whereClause;
-                $dataSql .= $whereClause;
+                $dataSql  .= $whereClause;
             }
         }
 
         $countStmt = $pdo->prepare($countSql);
         $countStmt->execute($params);
-        $totalRows = (int)$countStmt->fetchColumn();
+        $totalRows  = (int)$countStmt->fetchColumn();
         $totalPages = max(1, ceil($totalRows / $perPage));
-        $offset = ($page - 1) * $perPage;
+        $offset     = ($page - 1) * $perPage;
 
         $dataSql .= " LIMIT $perPage OFFSET $offset";
         $dataStmt = $pdo->prepare($dataSql);
