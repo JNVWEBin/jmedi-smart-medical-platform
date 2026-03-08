@@ -1,7 +1,7 @@
 <footer class="footer text-light">
     <div class="container">
         <div class="row g-4 pb-4">
-            <div class="col-lg-4 col-md-6">
+            <div class="col-12 col-lg-4">
                 <?php $footerLogo = $settings['footer_logo'] ?? ($settings['frontend_logo'] ?? ''); ?>
                 <?php if ($footerLogo): ?>
                 <a href="/" class="d-inline-block mb-3"><img src="<?= e($footerLogo) ?>" alt="<?= e($settings['site_name'] ?? 'JMedi') ?>" style="height:50px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></a>
@@ -15,7 +15,7 @@
                     <li class="mb-2"><i class="fas fa-envelope me-2" style="color:var(--primary);width:18px;"></i><?= e($settings['email'] ?? '') ?></li>
                 </ul>
             </div>
-            <div class="col-lg-2 col-md-6">
+            <div class="col-6 col-lg-2">
                 <h6 class="mb-3 pb-2" style="border-bottom:2px solid var(--primary);display:inline-block;">Quick Links</h6>
                 <ul class="list-unstyled footer-links">
                     <li><a href="/">Home</a></li>
@@ -26,7 +26,7 @@
                     <li><a href="/public/contact.php">Contact Us</a></li>
                 </ul>
             </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-6 col-lg-3">
                 <h6 class="mb-3 pb-2" style="border-bottom:2px solid var(--primary);display:inline-block;">Departments</h6>
                 <ul class="list-unstyled footer-links">
                     <?php
@@ -36,7 +36,7 @@
                     <?php endforeach; ?>
                 </ul>
             </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-12 col-lg-3">
                 <h6 class="mb-3 pb-2" style="border-bottom:2px solid var(--primary);display:inline-block;">Emergency</h6>
                 <div class="p-3 rounded-3 mb-3" style="background:rgba(13,110,253,0.12);border-left:4px solid var(--primary);">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -240,7 +240,7 @@ $floatDoctors = getDoctors($pdo);
 @media (max-width: 991.98px) {
     .appointment-float { display: none !important; }
     .whatsapp-float    { display: none !important; }
-    body { padding-bottom: 68px; }
+    .footer { padding-bottom: 80px; }
 }
 
 /* Mobile fixed footer CTA bar */
