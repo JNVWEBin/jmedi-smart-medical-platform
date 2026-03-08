@@ -103,223 +103,375 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
+* { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+
 .patient-auth-page {
-    background: linear-gradient(135deg, #f0f4ff 0%, #e8f4fd 50%, #f0fdf4 100%);
+    background: #f0f4fb;
     min-height: 80vh;
     display: flex;
     align-items: center;
-    padding: 60px 0;
+    justify-content: center;
+    padding: 3rem 1rem;
 }
-.auth-card {
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(13,110,253,0.1);
-    overflow: hidden;
-    max-width: 480px;
-    margin: 0 auto;
-    width: 100%;
-}
-.auth-header {
-    background: linear-gradient(135deg, #0D6EFD 0%, #0a58ca 100%);
-    padding: 32px 32px 24px;
-    text-align: center;
-    color: #fff;
-}
-.auth-header h3 {
-    color: #fff;
-    font-weight: 800;
-    margin-bottom: 6px;
-    font-size: 1.5rem;
-}
-.auth-header p {
-    opacity: 0.85;
-    margin: 0;
-    font-size: 0.95rem;
-}
-.auth-tabs {
+
+.pa-wrapper {
     display: flex;
-    border-bottom: 2px solid #f0f0f0;
+    width: 100%;
+    max-width: 1000px;
+    min-height: 600px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 24px 70px rgba(26,46,94,0.16);
 }
-.auth-tabs button {
+
+/* ── Left panel ── */
+.pa-left {
+    width: 40%;
+    background: linear-gradient(160deg, #1e3a8a 0%, #1a2e5e 55%, #111e42 100%);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.pa-left-img {
     flex: 1;
-    padding: 14px;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+.pa-left-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    mix-blend-mode: luminosity;
+    opacity: 0.8;
+}
+.pa-left-img .img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(30,58,138,0.2) 0%, rgba(17,30,66,0.88) 100%);
+}
+.pa-left-bottom {
+    padding: 1.75rem 1.75rem 2rem;
+    position: relative;
+    z-index: 2;
+}
+.pa-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+.pa-logo-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: #3b82f6;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; color: #fff;
+}
+.pa-logo span { font-size: 1.05rem; font-weight: 800; color: #fff; }
+.pa-tagline {
+    font-size: 1.15rem; font-weight: 800;
+    color: #fff; line-height: 1.35; margin-bottom: 0.5rem;
+}
+.pa-tagline strong { color: #60a5fa; }
+.pa-sub { font-size: 0.78rem; color: rgba(255,255,255,0.55); line-height: 1.55; }
+
+.pa-deco {
+    position: absolute; border-radius: 50%;
+    background: rgba(59,130,246,0.07); pointer-events: none;
+}
+.pa-deco-1 { width: 200px; height: 200px; top: -50px; right: -50px; }
+.pa-deco-2 { width: 120px; height: 120px; top: 90px; right: 60px; background: rgba(96,165,250,0.05); }
+
+/* ── Right panel ── */
+.pa-right {
+    flex: 1;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.pa-right-inner {
+    padding: 2.5rem 2.75rem;
+    flex: 1;
+}
+
+.pa-right-logo {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem;
+}
+.pa-right-logo-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; color: #fff;
+}
+.pa-right-logo span { font-size: 1.1rem; font-weight: 800; color: #1e293b; }
+
+.pa-title { font-size: 1.6rem; font-weight: 800; color: #1e293b; margin-bottom: 0.3rem; }
+.pa-subtitle { font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem; }
+
+/* Tabs */
+.pa-tabs {
+    display: flex;
+    background: #f0f4fb;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+    gap: 4px;
+}
+.pa-tab-btn {
+    flex: 1;
+    padding: 0.6rem 1rem;
     border: none;
     background: transparent;
+    border-radius: 9px;
+    font-size: 0.88rem;
     font-weight: 700;
-    font-size: 0.95rem;
-    color: #999;
+    color: #64748b;
     cursor: pointer;
-    position: relative;
-    transition: all 0.3s;
+    transition: all 0.22s;
 }
-.auth-tabs button.active {
-    color: #0D6EFD;
+.pa-tab-btn.active {
+    background: #fff;
+    color: #1d4ed8;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.12);
 }
-.auth-tabs button.active::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #0D6EFD;
-    border-radius: 3px 3px 0 0;
+
+/* Fields */
+.pa-label {
+    font-size: 0.83rem; font-weight: 600;
+    color: #374151; margin-bottom: 0.35rem; display: block;
 }
-.auth-body {
-    padding: 28px 32px 32px;
-}
-.auth-body .form-control {
+.pa-label .req { color: #ef4444; }
+.pa-input-group {
+    display: flex;
+    border: 1.5px solid #e2e8f0;
     border-radius: 10px;
-    padding: 12px 16px;
-    border: 2px solid #e9ecef;
-    font-size: 0.95rem;
+    overflow: hidden;
     transition: border-color 0.2s, box-shadow 0.2s;
+    background: #f8faff;
+    margin-bottom: 0.9rem;
 }
-.auth-body .form-control:focus {
-    border-color: #0D6EFD;
-    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+.pa-input-group:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    background: #fff;
 }
-.auth-body .input-group-text {
-    border-radius: 10px 0 0 10px;
-    border: 2px solid #e9ecef;
-    border-right: none;
-    background: #f8f9fa;
-    color: #999;
+.pa-input-group .pa-icon {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 0.85rem;
+    color: #94a3b8; font-size: 0.85rem;
+    background: transparent;
 }
-.auth-body .input-group .form-control {
-    border-radius: 0 10px 10px 0;
-    border-left: none;
+.pa-input-group:focus-within .pa-icon { color: #3b82f6; }
+.pa-input-group input {
+    flex: 1; border: none; outline: none;
+    background: transparent;
+    padding: 0.65rem 0.85rem 0.65rem 0;
+    font-size: 0.88rem; color: #1e293b;
 }
-.auth-body .input-group:focus-within .input-group-text {
-    border-color: #0D6EFD;
-    color: #0D6EFD;
+.pa-input-group input::placeholder { color: #94a3b8; }
+
+.pa-password-row {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 0.35rem;
 }
-.auth-body .input-group:focus-within .form-control {
-    border-color: #0D6EFD;
+
+.pa-btn {
+    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 0.72rem; font-size: 0.92rem; font-weight: 700;
+    width: 100%; cursor: pointer; transition: all 0.22s;
+    box-shadow: 0 6px 20px rgba(59,130,246,0.28);
+    margin-top: 0.25rem;
 }
-.btn-auth {
-    background: linear-gradient(135deg, #0D6EFD 0%, #0a58ca 100%);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 13px;
-    font-size: 1rem;
-    font-weight: 700;
-    width: 100%;
-    cursor: pointer;
-    transition: all 0.3s;
+.pa-btn:hover {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    box-shadow: 0 8px 26px rgba(59,130,246,0.38);
+    transform: translateY(-1px);
 }
-.btn-auth:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(13,110,253,0.35);
+
+.pa-switch {
+    text-align: center; margin-top: 1rem;
+    font-size: 0.82rem; color: #94a3b8;
 }
-.tab-panel {
-    display: none;
+.pa-switch a {
+    color: #3b82f6; font-weight: 700; text-decoration: none;
 }
-.tab-panel.active {
-    display: block;
+.pa-switch a:hover { color: #1d4ed8; }
+
+.pa-error {
+    background: #fef2f2; border: 1px solid #fecaca;
+    color: #b91c1c; border-radius: 10px;
+    padding: 0.65rem 0.9rem; font-size: 0.84rem;
+    margin-bottom: 0.9rem; display: flex; align-items: center; gap: 6px;
+}
+.pa-success {
+    background: #f0fdf4; border: 1px solid #bbf7d0;
+    color: #166534; border-radius: 10px;
+    padding: 0.65rem 0.9rem; font-size: 0.84rem;
+    margin-bottom: 0.9rem; display: flex; align-items: center; gap: 6px;
+}
+
+.pa-footer {
+    text-align: center; padding: 1rem 2.75rem 1.5rem;
+    font-size: 0.78rem; color: #94a3b8;
+    border-top: 1px solid #f1f5f9;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+@media (max-width: 720px) {
+    .pa-wrapper { flex-direction: column; max-width: 460px; min-height: auto; }
+    .pa-left { width: 100%; min-height: 200px; }
+    .pa-left-img { min-height: 130px; }
+    .pa-right-inner { padding: 1.75rem 1.5rem; }
+    .pa-footer { padding: 0.75rem 1.5rem 1.25rem; }
 }
 </style>
 
 <div class="patient-auth-page">
-    <div class="container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <div style="font-size:2.5rem;margin-bottom:10px;"><i class="fas fa-user-circle"></i></div>
-                <h3>Patient Portal</h3>
-                <p>Access your appointments and medical records</p>
-            </div>
+    <div class="pa-wrapper">
 
-            <div class="auth-tabs">
-                <button class="<?= $activeTab === 'login' ? 'active' : '' ?>" onclick="switchTab('login')" id="tabLogin"><i class="fas fa-sign-in-alt me-1"></i> Login</button>
-                <button class="<?= $activeTab === 'register' ? 'active' : '' ?>" onclick="switchTab('register')" id="tabRegister"><i class="fas fa-user-plus me-1"></i> Register</button>
+        <!-- Left panel -->
+        <div class="pa-left">
+            <div class="pa-deco pa-deco-1"></div>
+            <div class="pa-deco pa-deco-2"></div>
+            <div class="pa-left-img">
+                <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600&h=700&fit=crop&q=80" alt="Patient Care">
+                <div class="img-overlay"></div>
             </div>
+            <div class="pa-left-bottom">
+                <div class="pa-logo">
+                    <div class="pa-logo-icon"><i class="fas fa-heartbeat"></i></div>
+                    <span>JMedi</span>
+                </div>
+                <div class="pa-tagline">Your health,<br><strong>our priority.</strong></div>
+                <div class="pa-sub">Book appointments, access records, and manage your care — all in one place.</div>
+            </div>
+        </div>
 
-            <div class="auth-body">
+        <!-- Right panel -->
+        <div class="pa-right">
+            <div class="pa-right-inner">
+
+                <div class="pa-right-logo">
+                    <div class="pa-right-logo-icon"><i class="fas fa-heartbeat"></i></div>
+                    <span>JMedi</span>
+                </div>
+
+                <h1 class="pa-title">Patient Portal</h1>
+                <p class="pa-subtitle">Access your appointments and medical records</p>
+
+                <!-- Tabs -->
+                <div class="pa-tabs">
+                    <button class="pa-tab-btn <?= $activeTab === 'login' ? 'active' : '' ?>" onclick="switchTab('login')" id="tabLogin">
+                        <i class="fas fa-sign-in-alt me-1"></i> Sign In
+                    </button>
+                    <button class="pa-tab-btn <?= $activeTab === 'register' ? 'active' : '' ?>" onclick="switchTab('register')" id="tabRegister">
+                        <i class="fas fa-user-plus me-1"></i> Register
+                    </button>
+                </div>
+
+                <!-- Login tab -->
                 <div id="panelLogin" class="tab-panel <?= $activeTab === 'login' ? 'active' : '' ?>">
                     <?php if ($loginError): ?>
-                    <div class="alert alert-danger py-2 mb-3"><i class="fas fa-exclamation-circle me-1"></i> <?= e($loginError) ?></div>
+                    <div class="pa-error"><i class="fas fa-exclamation-circle"></i> <?= e($loginError) ?></div>
                     <?php endif; ?>
 
                     <form method="POST">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="login">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" name="email" class="form-control" placeholder="your@email.com" required value="<?= e($_POST['action'] ?? '' === 'login' ? ($_POST['email'] ?? '') : '') ?>">
-                            </div>
+                        <label class="pa-label">Email Address</label>
+                        <div class="pa-input-group">
+                            <span class="pa-icon"><i class="fas fa-envelope"></i></span>
+                            <input type="email" name="email" placeholder="your@email.com" required
+                                value="<?= e(($_POST['action'] ?? '') === 'login' ? ($_POST['email'] ?? '') : '') ?>">
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
-                            </div>
+
+                        <div class="pa-password-row">
+                            <label class="pa-label mb-0">Password</label>
                         </div>
-                        <button type="submit" class="btn-auth"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
+                        <div class="pa-input-group">
+                            <span class="pa-icon"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" placeholder="••••••••••" required>
+                        </div>
+
+                        <button type="submit" class="pa-btn"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
                     </form>
 
-                    <div class="text-center mt-3">
-                        <small class="text-muted">Don't have an account? <a href="javascript:void(0)" onclick="switchTab('register')" style="color:#0D6EFD;font-weight:600;">Register here</a></small>
+                    <div class="pa-switch">
+                        Don't have an account? <a href="javascript:void(0)" onclick="switchTab('register')">Register here</a>
                     </div>
                 </div>
 
+                <!-- Register tab -->
                 <div id="panelRegister" class="tab-panel <?= $activeTab === 'register' ? 'active' : '' ?>">
                     <?php if ($registerError): ?>
-                    <div class="alert alert-danger py-2 mb-3"><i class="fas fa-exclamation-circle me-1"></i> <?= e($registerError) ?></div>
+                    <div class="pa-error"><i class="fas fa-exclamation-circle"></i> <?= e($registerError) ?></div>
+                    <?php endif; ?>
+                    <?php if ($registerSuccess): ?>
+                    <div class="pa-success"><i class="fas fa-check-circle"></i> <?= e($registerSuccess) ?></div>
                     <?php endif; ?>
 
                     <form method="POST">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="register">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input type="text" name="name" class="form-control" placeholder="John Doe" required value="<?= e(($_POST['action'] ?? '') === 'register' ? ($_POST['name'] ?? '') : '') ?>">
-                            </div>
+                        <label class="pa-label">Full Name <span class="req">*</span></label>
+                        <div class="pa-input-group">
+                            <span class="pa-icon"><i class="fas fa-user"></i></span>
+                            <input type="text" name="name" placeholder="John Doe" required
+                                value="<?= e(($_POST['action'] ?? '') === 'register' ? ($_POST['name'] ?? '') : '') ?>">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" name="email" class="form-control" placeholder="your@email.com" required value="<?= e(($_POST['action'] ?? '') === 'register' ? ($_POST['email'] ?? '') : '') ?>">
-                            </div>
+
+                        <label class="pa-label">Email Address <span class="req">*</span></label>
+                        <div class="pa-input-group">
+                            <span class="pa-icon"><i class="fas fa-envelope"></i></span>
+                            <input type="email" name="email" placeholder="your@email.com" required
+                                value="<?= e(($_POST['action'] ?? '') === 'register' ? ($_POST['email'] ?? '') : '') ?>">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Phone Number</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                <input type="tel" name="phone" class="form-control" placeholder="+1 (555) 123-4567" value="<?= e(($_POST['action'] ?? '') === 'register' ? ($_POST['phone'] ?? '') : '') ?>">
-                            </div>
+
+                        <label class="pa-label">Phone Number</label>
+                        <div class="pa-input-group">
+                            <span class="pa-icon"><i class="fas fa-phone"></i></span>
+                            <input type="tel" name="phone" placeholder="+91 98765 43210"
+                                value="<?= e(($_POST['action'] ?? '') === 'register' ? ($_POST['phone'] ?? '') : '') ?>">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required minlength="6">
-                            </div>
+
+                        <label class="pa-label">Password <span class="req">*</span></label>
+                        <div class="pa-input-group">
+                            <span class="pa-icon"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" placeholder="Min 6 characters" required minlength="6">
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter password" required minlength="6">
-                            </div>
+
+                        <label class="pa-label">Confirm Password <span class="req">*</span></label>
+                        <div class="pa-input-group">
+                            <span class="pa-icon"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="confirm_password" placeholder="Re-enter password" required minlength="6">
                         </div>
-                        <button type="submit" class="btn-auth"><i class="fas fa-user-plus me-2"></i>Create Account</button>
+
+                        <button type="submit" class="pa-btn"><i class="fas fa-user-plus me-2"></i>Create Account</button>
                     </form>
 
-                    <div class="text-center mt-3">
-                        <small class="text-muted">Already have an account? <a href="javascript:void(0)" onclick="switchTab('login')" style="color:#0D6EFD;font-weight:600;">Login here</a></small>
+                    <div class="pa-switch">
+                        Already have an account? <a href="javascript:void(0)" onclick="switchTab('login')">Sign in here</a>
                     </div>
                 </div>
+
+            </div>
+            <div class="pa-footer">
+                Powered by <strong style="color:#1e293b;">JNVWeb</strong> &nbsp;·&nbsp; &copy; <?= date('Y') ?> JMedi
             </div>
         </div>
+
     </div>
 </div>
 
