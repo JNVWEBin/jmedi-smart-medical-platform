@@ -669,12 +669,12 @@ const labels = <?= json_encode(array_column($monthlyData, 'label')) ?>;
 const data = <?= json_encode(array_column($monthlyData, 'count')) ?>;
 
 const gradient = ctx.createLinearGradient(0, 0, 0, 250);
-gradient.addColorStop(0, 'rgba(34,197,94,0.2)');
-gradient.addColorStop(1, 'rgba(34,197,94,0)');
+gradient.addColorStop(0, 'rgba(59,130,246,0.18)');
+gradient.addColorStop(1, 'rgba(59,130,246,0)');
 
 const gradient2 = ctx.createLinearGradient(0, 0, 0, 250);
-gradient2.addColorStop(0, 'rgba(24,90,58,0.15)');
-gradient2.addColorStop(1, 'rgba(24,90,58,0)');
+gradient2.addColorStop(0, 'rgba(59,130,246,0.15)');
+gradient2.addColorStop(1, 'rgba(59,130,246,0)');
 
 new Chart(ctx, {
     type: 'line',
@@ -684,12 +684,12 @@ new Chart(ctx, {
             {
                 label: 'Appointments',
                 data: data,
-                borderColor: '#185a3a',
+                borderColor: '#1d4ed8',
                 backgroundColor: gradient2,
                 borderWidth: 2.5,
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#185a3a',
+                pointBackgroundColor: '#1d4ed8',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 pointRadius: 4,
@@ -698,7 +698,7 @@ new Chart(ctx, {
             {
                 label: 'Trend',
                 data: data.map(function(v, i) { return Math.max(0, v + Math.sin(i) * 0.5); }),
-                borderColor: '#22c55e',
+                borderColor: '#93c5fd',
                 backgroundColor: gradient,
                 borderWidth: 2,
                 fill: true,
@@ -722,7 +722,7 @@ new Chart(ctx, {
                 }
             },
             tooltip: {
-                backgroundColor: '#185a3a',
+                backgroundColor: '#1d4ed8',
                 titleFont: { family: 'Plus Jakarta Sans', weight: '600' },
                 bodyFont: { family: 'Plus Jakarta Sans' },
                 cornerRadius: 10,
