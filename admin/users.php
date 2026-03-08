@@ -211,10 +211,10 @@ $users = $pdo->query("SELECT admin_id, username, email, full_name, role, permiss
                         <div class="d-flex gap-1">
                             <a href="/admin/users.php?action=edit&id=<?= $user['admin_id'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                             <?php if ($user['admin_id'] !== (int)$_SESSION['admin_id']): ?>
-                            <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            <form method="POST" style="display:inline;">
                                 <?= csrfField() ?>
                                 <input type="hidden" name="delete_id" value="<?= $user['admin_id'] ?>">
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" data-delete-trigger data-delete-label="user '<?= e($user['username']) ?>'"><i class="fas fa-trash"></i></button>
                             </form>
                             <?php endif; ?>
                         </div>
