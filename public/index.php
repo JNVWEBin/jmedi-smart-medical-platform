@@ -593,16 +593,6 @@ function openVideoModal(videoId, title) {
 document.getElementById('videoModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('videoModalIframe').src = '';
 });
-new Swiper('.video-news-swiper', {
-    slidesPerView: 1,
-    spaceBetween: 24,
-    loop: false,
-    pagination: { el: '.vid-news-pagination', clickable: true },
-    breakpoints: {
-        576: { slidesPerView: 2 },
-        992: { slidesPerView: 3 }
-    }
-});
 </script>
 <?php endif; ?>
 
