@@ -31,6 +31,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const videoNewsSwiper = document.querySelector('.video-news-swiper');
+    if (videoNewsSwiper) {
+        new Swiper('.video-news-swiper', {
+            slidesPerView: 1,
+            spaceBetween: 24,
+            loop: false,
+            pagination: { el: '.vid-news-pagination', clickable: true },
+            breakpoints: {
+                576: { slidesPerView: 2 },
+                992: { slidesPerView: 3 }
+            }
+        });
+    }
+
     const deptFilter = document.getElementById('deptFilter');
     if (deptFilter) {
         deptFilter.addEventListener('change', function() {
