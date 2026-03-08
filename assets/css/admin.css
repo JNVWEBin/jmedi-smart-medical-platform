@@ -1007,6 +1007,69 @@
     box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
 }
 
+/* ── Top Rated Doctors slider ── */
+.docs-slider-outer { position: relative; }
+
+.docs-slider {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.docs-slide-item {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+/* Mobile: horizontal swipe slider */
+@media (max-width: 767px) {
+    .docs-slider {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+        scroll-behavior: smooth;
+        cursor: grab;
+        gap: 10px;
+    }
+    .docs-slider::-webkit-scrollbar { display: none; }
+    .docs-slider { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .docs-slide-item {
+        flex: 0 0 calc(50% - 5px);
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+}
+
+@media (max-width: 420px) {
+    .docs-slide-item {
+        flex: 0 0 calc(70% - 5px);
+    }
+}
+
+/* Dots */
+.docs-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+.docs-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--admin-border);
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-block;
+}
+.docs-dot.active {
+    background: var(--admin-accent);
+    width: 20px;
+    border-radius: 4px;
+}
+
 .recent-patient-item {
     display: flex;
     align-items: center;
