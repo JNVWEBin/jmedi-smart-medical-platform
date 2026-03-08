@@ -239,6 +239,8 @@ if (isDoctor()) {
     $todayAppointments = $pdo->query("SELECT a.*, d.name as doctor_name FROM appointments a LEFT JOIN doctors d ON a.doctor_id = d.doctor_id WHERE a.appointment_date = '$today' ORDER BY a.appointment_time ASC LIMIT 4")->fetchAll();
 
     $recentPosts = $pdo->query("SELECT title, slug, author, created_at FROM posts WHERE status='published' ORDER BY created_at DESC LIMIT 3")->fetchAll();
+    $topDoctors  = $pdo->query("SELECT d.doctor_id, d.name, d.photo, d.specialization, d.status, dep.name AS department_name FROM doctors d LEFT JOIN departments dep ON d.department_id = dep.department_id WHERE d.status = 1 ORDER BY d.doctor_id ASC LIMIT 5")->fetchAll();
+    $recentPatients = $pdo->query("SELECT appointment_id, patient_name, patient_phone, appointment_date, appointment_time, status FROM appointments ORDER BY created_at DESC LIMIT 8")->fetchAll();
 
     $dayOfWeek = date('N');
     $weekStart = date('Y-m-d', strtotime('-' . ($dayOfWeek - 1) . ' days'));
@@ -458,6 +460,34 @@ if (isDoctor()) {
     </div>
 </div>
 
+<?php if (!empty($topDoctors)): ?>
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 fw-bold" style="color:var(--admin-text);"><i class="fas fa-user-md me-2" style="color:var(--admin-accent);"></i>Top Rated Doctors</h5>
+        <a href="/admin/doctors.php" style="font-size:0.82rem;font-weight:600;color:var(--admin-accent);text-decoration:none;">View more &raquo;</a>
+    </div>
+    <div class="row g-3">
+        <?php foreach ($topDoctors as $td): ?>
+        <div class="col-xl col-md-4 col-6">
+            <div class="doctor-card">
+                <?php if ($td['status']): ?><span class="doc-status-badge"></span><?php endif; ?>
+                <?php if ($td['photo']): ?>
+                <img src="<?= e($td['photo']) ?>" class="doc-avatar" alt="">
+                <?php else: ?>
+                <div class="doc-avatar-placeholder"><?= strtoupper(substr($td['name'], 0, 1)) ?></div>
+                <?php endif; ?>
+                <div class="doc-name">Dr. <?= e($td['name']) ?></div>
+                <div class="doc-spec"><?= e($td['specialization'] ?: $td['department_name'] ?: 'General') ?></div>
+                <?php if ($td['department_name']): ?>
+                <div class="doc-dept"><i class="fas fa-hospital me-1"></i><?= e($td['department_name']) ?></div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if ($pendingCount > 0): ?>
 <div class="alert d-flex align-items-center mb-4" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; color: #92400e;">
     <i class="fas fa-exclamation-triangle me-2" style="color:#f59e0b;"></i>
@@ -466,38 +496,62 @@ if (isDoctor()) {
 </div>
 <?php endif; ?>
 
-<div class="table-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0"><i class="fas fa-list-alt me-2" style="color:var(--admin-accent);"></i>Recent Appointments</h5>
-        <a href="/admin/appointments.php" class="btn btn-sm btn-outline-primary" style="border-radius:8px;">View All</a>
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="table-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-list-alt me-2" style="color:var(--admin-accent);"></i>Recent Appointments</h5>
+                <a href="/admin/appointments.php" class="btn btn-sm btn-outline-primary" style="border-radius:8px;">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($recentAppointments)): ?>
+                        <tr><td colspan="4" class="text-center text-muted py-4">No appointments yet</td></tr>
+                        <?php else: ?>
+                        <?php foreach ($recentAppointments as $apt): ?>
+                        <tr>
+                            <td><strong><?= e($apt['patient_name']) ?></strong></td>
+                            <td><?= e($apt['doctor_name'] ?? '—') ?></td>
+                            <td><?= formatDate($apt['appointment_date']) ?></td>
+                            <td><span class="badge badge-<?= $apt['status'] ?>" style="border-radius:6px;padding:0.35em 0.65em;"><?= ucfirst($apt['status']) ?></span></td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Patient</th>
-                    <th>Doctor</th>
-                    <th>Department</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($recentAppointments)): ?>
-                <tr><td colspan="5" class="text-center text-muted py-4">No appointments yet</td></tr>
-                <?php else: ?>
-                <?php foreach ($recentAppointments as $apt): ?>
-                <tr>
-                    <td><strong><?= e($apt['patient_name']) ?></strong></td>
-                    <td><?= e($apt['doctor_name'] ?? 'Not specified') ?></td>
-                    <td><?= e($apt['department_name'] ?? 'Not specified') ?></td>
-                    <td><?= formatDate($apt['appointment_date']) ?></td>
-                    <td><span class="badge badge-<?= $apt['status'] ?>" style="border-radius:6px;padding:0.35em 0.65em;"><?= ucfirst($apt['status']) ?></span></td>
-                </tr>
-                <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+    <div class="col-xl-4">
+        <div class="table-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-users me-2" style="color:var(--admin-accent);"></i>Recent Patients</h5>
+                <a href="/admin/appointments.php" style="font-size:0.82rem;font-weight:600;color:var(--admin-accent);text-decoration:none;">More &raquo;</a>
+            </div>
+            <?php if (empty($recentPatients)): ?>
+            <p class="text-muted text-center py-3 mb-0">No patients yet</p>
+            <?php else: ?>
+            <?php foreach ($recentPatients as $rp): ?>
+            <div class="recent-patient-item">
+                <div class="rp-avatar-placeholder"><?= strtoupper(substr($rp['patient_name'], 0, 1)) ?></div>
+                <div class="rp-info">
+                    <div class="rp-name"><?= e($rp['patient_name']) ?></div>
+                    <div class="rp-date"><?= date('d M Y', strtotime($rp['appointment_date'])) ?></div>
+                </div>
+                <span class="rp-status <?= $rp['status'] ?>"><?= ucfirst($rp['status']) ?></span>
+            </div>
+            <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
