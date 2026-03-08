@@ -4,161 +4,534 @@ require_once __DIR__ . '/../includes/admin_header.php';
 requirePermission('settings');
 
 $success = '';
+$errors  = [];
+$s = getSettings($pdo);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $settingKeys = ['site_name', 'tagline', 'phone', 'emergency_phone', 'email', 'address', 'facebook', 'twitter', 'instagram', 'linkedin', 'primary_color', 'secondary_color', 'footer_text', 'whatsapp_number'];
-        foreach ($settingKeys as $key) {
-            if (isset($_POST[$key])) {
-                updateSetting($pdo, $key, trim($_POST[$key]));
+
+        /* ── Remove logo action ── */
+        if (!empty($_POST['remove_logo'])) {
+            $removeKey = $_POST['remove_logo'];
+            if (in_array($removeKey, ['frontend_logo','footer_logo','admin_logo','favicon'])) {
+                $oldPath = $s[$removeKey] ?? '';
+                if ($oldPath) {
+                    $abs = __DIR__ . '/..' . $oldPath;
+                    if (file_exists($abs)) @unlink($abs);
+                }
+                updateSetting($pdo, $removeKey, '');
+                $success = 'Logo removed.';
+                $s = getSettings($pdo);
             }
-        }
+        } else {
+            /* ── Text fields ── */
+            $settingKeys = [
+                'site_name','tagline','phone','emergency_phone','email','address',
+                'facebook','twitter','instagram','linkedin','youtube',
+                'primary_color','secondary_color','footer_text','whatsapp_number',
+                'appointment_email','google_maps_embed','meta_description','favicon'
+            ];
+            foreach ($settingKeys as $key) {
+                if (isset($_POST[$key])) {
+                    updateSetting($pdo, $key, trim($_POST[$key]));
+                }
+            }
 
-        if (!empty($_FILES['frontend_logo']['name'])) {
-            $logoPath = uploadImage($_FILES['frontend_logo'], 'logos');
-            if ($logoPath) updateSetting($pdo, 'frontend_logo', $logoPath);
-        }
+            /* ── Logo uploads ── */
+            $logoFields = [
+                'frontend_logo' => 'Frontend',
+                'footer_logo'   => 'Footer',
+                'admin_logo'    => 'Admin Panel',
+            ];
+            foreach ($logoFields as $field => $label) {
+                if (!empty($_FILES[$field]['name'])) {
+                    $result = uploadImageWithError($_FILES[$field], 'logos');
+                    if (is_string($result) && str_starts_with($result, '/')) {
+                        updateSetting($pdo, $field, $result);
+                    } else {
+                        $errors[] = "$label Logo: " . ($result ?: 'Upload failed. Check file type (JPG/PNG/GIF/WEBP) and size (max 5 MB).');
+                    }
+                }
+            }
 
-        if (!empty($_FILES['footer_logo']['name'])) {
-            $logoPath = uploadImage($_FILES['footer_logo'], 'logos');
-            if ($logoPath) updateSetting($pdo, 'footer_logo', $logoPath);
-        }
+            /* ── Favicon upload ── */
+            if (!empty($_FILES['favicon_file']['name'])) {
+                $result = uploadImageWithError($_FILES['favicon_file'], 'logos');
+                if (is_string($result) && str_starts_with($result, '/')) {
+                    updateSetting($pdo, 'favicon', $result);
+                } else {
+                    $errors[] = 'Favicon: ' . ($result ?: 'Upload failed.');
+                }
+            }
 
-        if (!empty($_FILES['admin_logo']['name'])) {
-            $logoPath = uploadImage($_FILES['admin_logo'], 'logos');
-            if ($logoPath) updateSetting($pdo, 'admin_logo', $logoPath);
+            $success = empty($errors) ? 'Settings saved successfully.' : 'Settings saved, but some uploads failed.';
+            $s = getSettings($pdo);
         }
-
-        $success = 'Settings saved successfully.';
-        $settings = getSettings($pdo);
+    } else {
+        $errors[] = 'Invalid security token. Please refresh and try again.';
     }
 }
 
 $s = getSettings($pdo);
+
+/* ── Helper: uploadImage that returns error string on failure ── */
+function uploadImageWithError(array $file, string $dir = 'uploads'): string {
+    $uploadDir = __DIR__ . '/../assets/' . $dir . '/';
+    if (!is_dir($uploadDir)) {
+        if (!mkdir($uploadDir, 0755, true)) return 'Cannot create upload directory (check permissions).';
+    }
+    if (!is_writable($uploadDir)) return 'Upload directory is not writable.';
+
+    $allowedMimes = ['image/jpeg','image/png','image/gif','image/webp','image/x-icon','image/vnd.microsoft.icon'];
+    $allowedExts  = ['jpg','jpeg','png','gif','webp','ico'];
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $errMap = [
+            UPLOAD_ERR_INI_SIZE   => 'File exceeds server upload limit.',
+            UPLOAD_ERR_FORM_SIZE  => 'File exceeds form size limit.',
+            UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded.',
+            UPLOAD_ERR_NO_FILE    => 'No file was uploaded.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder.',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
+        ];
+        return $errMap[$file['error']] ?? 'Unknown upload error (code '.$file['error'].')';
+    }
+
+    $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+    $realMime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    if (!in_array($realMime, $allowedMimes)) return 'Invalid file type ('.$realMime.'). Only JPG/PNG/GIF/WEBP/ICO allowed.';
+    if ($file['size'] > 5 * 1024 * 1024) return 'File too large ('.round($file['size']/1024/1024,1).' MB). Max 5 MB.';
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExts)) return 'Invalid extension.'.$ext;
+
+    $filename = bin2hex(random_bytes(16)) . '.' . $ext;
+    $filepath = $uploadDir . $filename;
+
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        return '/assets/' . $dir . '/' . $filename;
+    }
+    return 'move_uploaded_file() failed — check directory permissions on the server.';
+}
+
+/* ── Active tab ── */
+$tab = $_GET['tab'] ?? 'general';
 ?>
 
-<?php if ($success): ?><div class="alert alert-success alert-dismissible fade show" style="border-radius:10px;border:none;"><i class="fas fa-check-circle me-2"></i><?= e($success) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><?php endif; ?>
+<?php if (!empty($errors)): ?>
+<div class="alert alert-danger alert-dismissible fade show" style="border-radius:10px;border:none;">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Some issues occurred:</strong>
+    <ul class="mb-0 mt-1">
+        <?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?>
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
+<?php if ($success): ?>
+<div class="alert alert-success alert-dismissible fade show" style="border-radius:10px;border:none;">
+    <i class="fas fa-check-circle me-2"></i><?= e($success) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
 
-<div class="dash-card">
-    <form method="POST" enctype="multipart/form-data">
-        <?= csrfField() ?>
-        <div class="row g-4">
-            <div class="col-12">
-                <div class="card-header-row">
-                    <h6><i class="fas fa-building me-2" style="color:var(--admin-accent);"></i>General</h6>
+<style>
+.settings-tabs .nav-link{border-radius:10px;padding:.55rem 1rem;font-weight:600;font-size:.88rem;color:var(--admin-primary);transition:.2s;}
+.settings-tabs .nav-link.active{background:var(--admin-accent);color:#fff;}
+.settings-tabs .nav-link i{width:18px;}
+.logo-card{background:#fff;border-radius:14px;padding:1.2rem;border:2px dashed #d0dbe8;transition:.3s;text-align:center;}
+.logo-card:hover{border-color:var(--admin-accent);}
+.logo-preview-box{min-height:90px;display:flex;align-items:center;justify-content:center;border-radius:10px;overflow:hidden;margin-bottom:.75rem;}
+.logo-preview-box img{max-height:80px;max-width:100%;object-fit:contain;}
+.logo-preview-box.dark{background:#0f2137;}
+.logo-preview-box.light{background:#f5f7fb;}
+.logo-preview-box.admin{background:#1a2e5e;}
+.logo-placeholder{color:#b0bec5;font-size:.82rem;}
+.logo-upload-btn{display:none;}
+.logo-upload-label{cursor:pointer;display:block;border-radius:8px;border:1px solid var(--admin-accent);color:var(--admin-accent);padding:.3rem .8rem;font-size:.83rem;font-weight:600;transition:.2s;}
+.logo-upload-label:hover{background:var(--admin-accent);color:#fff;}
+.btn-remove-logo{font-size:.78rem;padding:.25rem .6rem;border-radius:7px;}
+.settings-section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--admin-accent);border-bottom:2px solid #e8edf3;padding-bottom:.4rem;margin-bottom:1rem;}
+.color-swatch{width:36px;height:36px;border-radius:7px;border:2px solid #dee2e6;cursor:pointer;}
+</style>
+
+<div class="row g-3">
+    <!-- Sidebar tabs -->
+    <div class="col-lg-2 col-md-3">
+        <div class="dash-card p-2">
+            <nav class="nav flex-column settings-tabs gap-1">
+                <a class="nav-link <?= $tab==='general'?'active':'' ?>" href="?tab=general"><i class="fas fa-building me-2"></i>General</a>
+                <a class="nav-link <?= $tab==='logos'?'active':'' ?>" href="?tab=logos"><i class="fas fa-image me-2"></i>Logos</a>
+                <a class="nav-link <?= $tab==='contact'?'active':'' ?>" href="?tab=contact"><i class="fas fa-phone me-2"></i>Contact</a>
+                <a class="nav-link <?= $tab==='social'?'active':'' ?>" href="?tab=social"><i class="fab fa-facebook me-2"></i>Social</a>
+                <a class="nav-link <?= $tab==='appearance'?'active':'' ?>" href="?tab=appearance"><i class="fas fa-palette me-2"></i>Appearance</a>
+                <a class="nav-link <?= $tab==='advanced'?'active':'' ?>" href="?tab=advanced"><i class="fas fa-cog me-2"></i>Advanced</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="col-lg-10 col-md-9">
+
+        <!-- ═══════════════════════════ GENERAL ═══════════════════════════ -->
+        <?php if ($tab === 'general'): ?>
+        <div class="dash-card">
+            <div class="settings-section-title"><i class="fas fa-building me-1"></i> General Information</div>
+            <form method="POST" enctype="multipart/form-data">
+                <?= csrfField() ?>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Hospital / Site Name</label>
+                        <input type="text" name="site_name" class="form-control" value="<?= e($s['site_name'] ?? '') ?>" placeholder="e.g. JMedi Hospital">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tagline</label>
+                        <input type="text" name="tagline" class="form-control" value="<?= e($s['tagline'] ?? '') ?>" placeholder="Smart Medical Platform">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Footer Text</label>
+                        <input type="text" name="footer_text" class="form-control" value="<?= e($s['footer_text'] ?? '') ?>" placeholder="© 2026 JMedi. All Rights Reserved.">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Meta Description <small class="text-muted">(SEO)</small></label>
+                        <input type="text" name="meta_description" class="form-control" value="<?= e($s['meta_description'] ?? '') ?>" placeholder="Short site description for search engines">
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save General</button>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Hospital / Site Name</label>
-                <input type="text" name="site_name" class="form-control" value="<?= e($s['site_name'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Tagline</label>
-                <input type="text" name="tagline" class="form-control" value="<?= e($s['tagline'] ?? '') ?>" style="border-radius:10px;">
-            </div>
+            </form>
+        </div>
 
-            <div class="col-12 mt-4">
-                <div class="card-header-row">
-                    <h6><i class="fas fa-image me-2" style="color:var(--admin-accent);"></i>Logo Management</h6>
+        <!-- ═══════════════════════════ LOGOS ═══════════════════════════ -->
+        <?php elseif ($tab === 'logos'): ?>
+        <div class="dash-card">
+            <div class="settings-section-title"><i class="fas fa-image me-1"></i> Logo Management</div>
+            <p class="text-muted small mb-3">Accepted: JPG, PNG, GIF, WEBP &nbsp;|&nbsp; Max 5 MB each &nbsp;|&nbsp; Recommended: transparent PNG</p>
+            <div class="row g-3">
+                <?php
+                $logoMeta = [
+                    'frontend_logo' => ['label'=>'Frontend Logo','bg'=>'light','hint'=>'Shown in the website header'],
+                    'footer_logo'   => ['label'=>'Footer Logo',  'bg'=>'dark', 'hint'=>'Shown in the website footer. Falls back to Frontend Logo if empty.'],
+                    'admin_logo'    => ['label'=>'Admin Logo',   'bg'=>'admin','hint'=>'Shown in the admin sidebar'],
+                ];
+                foreach ($logoMeta as $field => $meta):
+                    $current = $s[$field] ?? '';
+                ?>
+                <div class="col-md-4">
+                    <div class="logo-card">
+                        <p class="fw-semibold mb-2" style="font-size:.9rem;"><?= $meta['label'] ?></p>
+                        <div class="logo-preview-box <?= $meta['bg'] ?>" id="preview-box-<?= $field ?>">
+                            <?php if ($current): ?>
+                            <img src="<?= e($current) ?>?v=<?= time() ?>" alt="<?= $meta['label'] ?>" id="preview-img-<?= $field ?>">
+                            <?php else: ?>
+                            <div class="logo-placeholder" id="preview-img-<?= $field ?>"><i class="fas fa-image fa-2x mb-1 d-block"></i>No logo set</div>
+                            <?php endif; ?>
+                        </div>
+                        <small class="text-muted d-block mb-2"><?= $meta['hint'] ?></small>
+                        <!-- Upload -->
+                        <form method="POST" enctype="multipart/form-data" class="mb-2">
+                            <?= csrfField() ?>
+                            <input type="file" name="<?= $field ?>" id="file-<?= $field ?>" class="logo-upload-btn" accept="image/*" onchange="previewLogo(this,'<?= $field ?>')">
+                            <label for="file-<?= $field ?>" class="logo-upload-label w-100 text-center mb-2">
+                                <i class="fas fa-upload me-1"></i>Choose File
+                            </label>
+                            <div id="file-name-<?= $field ?>" class="text-muted small mb-2" style="display:none;word-break:break-all;"></div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100" id="upload-btn-<?= $field ?>" style="display:none;">
+                                <i class="fas fa-cloud-upload-alt me-1"></i>Upload &amp; Save
+                            </button>
+                        </form>
+                        <!-- Remove -->
+                        <?php if ($current): ?>
+                        <form method="POST">
+                            <?= csrfField() ?>
+                            <input type="hidden" name="remove_logo" value="<?= $field ?>">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100 btn-remove-logo"
+                                    onclick="return confirm('Remove this logo?')">
+                                <i class="fas fa-trash-alt me-1"></i>Remove Logo
+                            </button>
+                        </form>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Frontend Logo</label>
-                <?php if (!empty($s['frontend_logo'])): ?>
-                <div class="mb-2"><img src="<?= e($s['frontend_logo']) ?>" alt="Logo" style="max-height:50px;border-radius:8px;background:#f0f5f1;padding:8px;"></div>
-                <?php endif; ?>
-                <input type="file" name="frontend_logo" class="form-control" accept="image/*" style="border-radius:10px;">
-                <small class="text-muted">Displayed in the website header. Leave empty to keep current.</small>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Footer Logo</label>
-                <?php if (!empty($s['footer_logo'])): ?>
-                <div class="mb-2"><img src="<?= e($s['footer_logo']) ?>" alt="Footer Logo" style="max-height:50px;border-radius:8px;background:#0f2137;padding:8px;"></div>
-                <?php endif; ?>
-                <input type="file" name="footer_logo" class="form-control" accept="image/*" style="border-radius:10px;">
-                <small class="text-muted">Displayed in the website footer. If empty, uses the frontend logo. Leave empty to keep current.</small>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Admin Panel Logo</label>
-                <?php if (!empty($s['admin_logo'])): ?>
-                <div class="mb-2"><img src="<?= e($s['admin_logo']) ?>" alt="Logo" style="max-height:50px;border-radius:8px;background:#1a3a2a;padding:8px;"></div>
-                <?php endif; ?>
-                <input type="file" name="admin_logo" class="form-control" accept="image/*" style="border-radius:10px;">
-                <small class="text-muted">Displayed in the admin sidebar. Leave empty to keep current.</small>
+                <?php endforeach; ?>
             </div>
 
-            <div class="col-12 mt-4">
-                <div class="card-header-row">
-                    <h6><i class="fas fa-phone-alt me-2" style="color:var(--admin-accent);"></i>Contact Information</h6>
+            <!-- Favicon -->
+            <div class="mt-4">
+                <div class="settings-section-title"><i class="fas fa-star me-1"></i> Favicon</div>
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <?php $fav = $s['favicon'] ?? ''; ?>
+                        <?php if ($fav): ?>
+                        <img src="<?= e($fav) ?>?v=<?= time() ?>" alt="Favicon" style="width:48px;height:48px;object-fit:contain;border-radius:8px;background:#f5f7fb;padding:6px;border:1px solid #dee2e6;">
+                        <?php else: ?>
+                        <div style="width:48px;height:48px;border-radius:8px;background:#f5f7fb;border:1px solid #dee2e6;display:flex;align-items:center;justify-content:center;color:#b0bec5;"><i class="fas fa-globe"></i></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col">
+                        <form method="POST" enctype="multipart/form-data" class="d-flex gap-2 align-items-center flex-wrap">
+                            <?= csrfField() ?>
+                            <input type="file" name="favicon_file" class="form-control form-control-sm" accept="image/*,.ico" style="max-width:260px;">
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-upload me-1"></i>Upload Favicon</button>
+                            <?php if ($fav): ?>
+                            <form method="POST" style="display:inline;">
+                                <?= csrfField() ?>
+                                <input type="hidden" name="remove_logo" value="favicon">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Remove favicon?')"><i class="fas fa-trash-alt me-1"></i>Remove</button>
+                            </form>
+                            <?php endif; ?>
+                        </form>
+                        <small class="text-muted d-block mt-1">Recommended: 32×32 or 64×64 PNG or ICO</small>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Phone</label>
-                <input type="text" name="phone" class="form-control" value="<?= e($s['phone'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Emergency Phone</label>
-                <input type="text" name="emergency_phone" class="form-control" value="<?= e($s['emergency_phone'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Email</label>
-                <input type="email" name="email" class="form-control" value="<?= e($s['email'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Address</label>
-                <input type="text" name="address" class="form-control" value="<?= e($s['address'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold"><i class="fab fa-whatsapp text-success me-1"></i>WhatsApp Number</label>
-                <input type="text" name="whatsapp_number" class="form-control" value="<?= e($s['whatsapp_number'] ?? '') ?>" placeholder="e.g. 18001234567 (no + or spaces)" style="border-radius:10px;">
-                <small class="text-muted">Used for the floating WhatsApp chat button. Format: country code + number, no spaces.</small>
-            </div>
-
-            <div class="col-12 mt-4">
-                <div class="card-header-row">
-                    <h6><i class="fab fa-facebook me-2" style="color:var(--admin-accent);"></i>Social Media</h6>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Facebook</label>
-                <input type="url" name="facebook" class="form-control" value="<?= e($s['facebook'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Twitter</label>
-                <input type="url" name="twitter" class="form-control" value="<?= e($s['twitter'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Instagram</label>
-                <input type="url" name="instagram" class="form-control" value="<?= e($s['instagram'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">LinkedIn</label>
-                <input type="url" name="linkedin" class="form-control" value="<?= e($s['linkedin'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-
-            <div class="col-12 mt-4">
-                <div class="card-header-row">
-                    <h6><i class="fas fa-palette me-2" style="color:var(--admin-accent);"></i>Appearance</h6>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Primary Color</label>
-                <input type="color" name="primary_color" class="form-control form-control-color" value="<?= e($s['primary_color'] ?? '#0D6EFD') ?>" style="border-radius:10px;height:45px;">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Secondary Color</label>
-                <input type="color" name="secondary_color" class="form-control form-control-color" value="<?= e($s['secondary_color'] ?? '#20C997') ?>" style="border-radius:10px;height:45px;">
-            </div>
-            <div class="col-md-4"></div>
-            <div class="col-12">
-                <label class="form-label fw-semibold">Footer Text</label>
-                <input type="text" name="footer_text" class="form-control" value="<?= e($s['footer_text'] ?? '') ?>" style="border-radius:10px;">
-            </div>
-
-            <div class="col-12 mt-3">
-                <button type="submit" class="btn btn-primary px-5 py-2" style="border-radius:10px;font-weight:600;"><i class="fas fa-save me-2"></i>Save Settings</button>
             </div>
         </div>
-    </form>
-</div>
+
+        <!-- ═══════════════════════════ CONTACT ═══════════════════════════ -->
+        <?php elseif ($tab === 'contact'): ?>
+        <div class="dash-card">
+            <div class="settings-section-title"><i class="fas fa-phone me-1"></i> Contact Information</div>
+            <form method="POST" enctype="multipart/form-data">
+                <?= csrfField() ?>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Main Phone</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            <input type="text" name="phone" class="form-control" value="<?= e($s['phone'] ?? '') ?>" placeholder="+1 (800) 123-4567">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Emergency Phone</label>
+                        <div class="input-group">
+                            <span class="input-group-text text-danger"><i class="fas fa-ambulance"></i></span>
+                            <input type="text" name="emergency_phone" class="form-control" value="<?= e($s['emergency_phone'] ?? '') ?>" placeholder="+1 (800) 911-0000">
+                        </div>
+                        <small class="text-muted">Shown in the footer emergency section</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" name="email" class="form-control" value="<?= e($s['email'] ?? '') ?>">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Appointment / Notification Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
+                            <input type="email" name="appointment_email" class="form-control" value="<?= e($s['appointment_email'] ?? '') ?>" placeholder="Receives appointment notifications">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Full Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                            <input type="text" name="address" class="form-control" value="<?= e($s['address'] ?? '') ?>">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold"><i class="fab fa-whatsapp text-success me-1"></i>WhatsApp Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text text-success"><i class="fab fa-whatsapp"></i></span>
+                            <input type="text" name="whatsapp_number" class="form-control" value="<?= e($s['whatsapp_number'] ?? '') ?>" placeholder="18001234567">
+                        </div>
+                        <small class="text-muted">Country code + number, no +, no spaces. e.g. <code>18001234567</code></small>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Google Maps Embed URL</label>
+                        <input type="text" name="google_maps_embed" class="form-control" value="<?= e($s['google_maps_embed'] ?? '') ?>" placeholder="https://www.google.com/maps/embed?pb=...">
+                        <small class="text-muted">Paste the embed URL from Google Maps → Share → Embed a map → Copy link</small>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save Contact Info</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ═══════════════════════════ SOCIAL ═══════════════════════════ -->
+        <?php elseif ($tab === 'social'): ?>
+        <div class="dash-card">
+            <div class="settings-section-title"><i class="fas fa-share-alt me-1"></i> Social Media Links</div>
+            <form method="POST" enctype="multipart/form-data">
+                <?= csrfField() ?>
+                <div class="row g-3">
+                    <?php
+                    $socials = [
+                        'facebook'  => ['fab fa-facebook-f',  'Facebook',  'https://facebook.com/yourpage'],
+                        'twitter'   => ['fab fa-twitter',     'Twitter / X','https://twitter.com/yourhandle'],
+                        'instagram' => ['fab fa-instagram',   'Instagram', 'https://instagram.com/yourpage'],
+                        'linkedin'  => ['fab fa-linkedin-in', 'LinkedIn',  'https://linkedin.com/company/yourpage'],
+                        'youtube'   => ['fab fa-youtube',     'YouTube',   'https://youtube.com/@yourchannel'],
+                    ];
+                    foreach ($socials as $key => [$icon, $label, $placeholder]):
+                    ?>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold"><i class="<?= $icon ?> me-1"></i><?= $label ?></label>
+                        <input type="url" name="<?= $key ?>" class="form-control" value="<?= e($s[$key] ?? '') ?>" placeholder="<?= $placeholder ?>">
+                    </div>
+                    <?php endforeach; ?>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save Social Links</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ═══════════════════════════ APPEARANCE ═══════════════════════════ -->
+        <?php elseif ($tab === 'appearance'): ?>
+        <div class="dash-card">
+            <div class="settings-section-title"><i class="fas fa-palette me-1"></i> Appearance / Branding</div>
+            <form method="POST" enctype="multipart/form-data">
+                <?= csrfField() ?>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Primary Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" name="primary_color" class="form-control form-control-color" value="<?= e($s['primary_color'] ?? '#0D6EFD') ?>" style="height:45px;width:60px;" id="pc">
+                            <input type="text" class="form-control" id="pc-hex" value="<?= e($s['primary_color'] ?? '#0D6EFD') ?>" style="font-family:monospace;" oninput="document.getElementById('pc').value=this.value">
+                        </div>
+                        <small class="text-muted">Buttons, links, accent elements</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Secondary Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" name="secondary_color" class="form-control form-control-color" value="<?= e($s['secondary_color'] ?? '#20C997') ?>" style="height:45px;width:60px;" id="sc">
+                            <input type="text" class="form-control" id="sc-hex" value="<?= e($s['secondary_color'] ?? '#20C997') ?>" style="font-family:monospace;" oninput="document.getElementById('sc').value=this.value">
+                        </div>
+                        <small class="text-muted">Highlights, badges, secondary accents</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Preview</label>
+                        <div id="color-preview" style="padding:14px;border-radius:12px;background:var(--admin-bg);border:1px solid #dee2e6;">
+                            <button type="button" class="btn btn-sm w-100 mb-1" id="prev-btn" style="background:<?= e($s['primary_color'] ?? '#0D6EFD') ?>;color:#fff;border:none;">Primary Button</button>
+                            <span class="badge" id="prev-badge" style="background:<?= e($s['secondary_color'] ?? '#20C997') ?>;color:#fff;font-size:.8rem;padding:.4em .8em;">Secondary Badge</span>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save Appearance</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ═══════════════════════════ ADVANCED ═══════════════════════════ -->
+        <?php elseif ($tab === 'advanced'): ?>
+        <div class="dash-card">
+            <div class="settings-section-title"><i class="fas fa-cog me-1"></i> Advanced Settings</div>
+            <form method="POST" enctype="multipart/form-data">
+                <?= csrfField() ?>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Meta Description <small class="text-muted">(SEO)</small></label>
+                        <textarea name="meta_description" class="form-control" rows="2" placeholder="Short description shown in Google search results (150-160 chars recommended)"><?= e($s['meta_description'] ?? '') ?></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Google Maps Embed URL</label>
+                        <input type="text" name="google_maps_embed" class="form-control" value="<?= e($s['google_maps_embed'] ?? '') ?>" placeholder="https://www.google.com/maps/embed?pb=...">
+                        <small class="text-muted">From Google Maps → Share → Embed a map → copy the <code>src</code> URL</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Appointment Notification Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" name="appointment_email" class="form-control" value="<?= e($s['appointment_email'] ?? '') ?>">
+                        </div>
+                        <small class="text-muted">Receives new appointment notification emails</small>
+                    </div>
+
+                    <!-- Upload directory status -->
+                    <div class="col-12 mt-3">
+                        <div class="settings-section-title"><i class="fas fa-folder-open me-1"></i> Upload Directory Status</div>
+                        <?php
+                        $checkDirs = [
+                            'assets/uploads'       => __DIR__ . '/../assets/uploads',
+                            'assets/uploads/logos'  => __DIR__ . '/../assets/uploads/logos',
+                            'assets/uploads/doctors'=> __DIR__ . '/../assets/uploads/doctors',
+                            'assets/uploads/blog'   => __DIR__ . '/../assets/uploads/blog',
+                            'assets/uploads/slides' => __DIR__ . '/../assets/uploads/slides',
+                        ];
+                        ?>
+                        <div class="table-responsive">
+                        <table class="table table-sm table-bordered" style="font-size:.85rem;">
+                            <thead class="table-light"><tr><th>Directory</th><th>Exists</th><th>Writable</th><th>Files</th></tr></thead>
+                            <tbody>
+                            <?php foreach ($checkDirs as $label => $path): ?>
+                            <?php
+                                $exists   = is_dir($path);
+                                $writable = $exists && is_writable($path);
+                                $count    = $exists ? count(array_filter(scandir($path), fn($f)=>!in_array($f,['.','..','.gitkeep']))) : '-';
+                            ?>
+                            <tr>
+                                <td><code><?= $label ?></code></td>
+                                <td><?= $exists ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-danger">No</span>' ?></td>
+                                <td><?= $writable ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-danger">No</span>' ?></td>
+                                <td><?= $count ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        </div>
+                        <small class="text-muted">If directories show "No" for Writable, ask your hosting provider to chmod 755 or 775 on those folders.</small>
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save Advanced</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <?php endif; ?>
+
+    </div><!-- /col -->
+</div><!-- /row -->
+
+<script>
+/* Live logo preview before upload */
+function previewLogo(input, field) {
+    const file = input.files[0];
+    if (!file) return;
+    const nameEl  = document.getElementById('file-name-' + field);
+    const btnEl   = document.getElementById('upload-btn-' + field);
+    const imgSlot = document.getElementById('preview-img-' + field);
+    if (nameEl) { nameEl.textContent = file.name; nameEl.style.display = 'block'; }
+    if (btnEl)  { btnEl.style.display = 'block'; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        if (imgSlot) {
+            if (imgSlot.tagName === 'IMG') {
+                imgSlot.src = e.target.result;
+            } else {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.maxHeight = '80px';
+                img.style.maxWidth  = '100%';
+                img.style.objectFit = 'contain';
+                img.id = 'preview-img-' + field;
+                imgSlot.replaceWith(img);
+            }
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+/* Color picker ↔ hex input sync + live preview */
+const pcInput  = document.getElementById('pc');
+const pcHex    = document.getElementById('pc-hex');
+const scInput  = document.getElementById('sc');
+const scHex    = document.getElementById('sc-hex');
+const prevBtn  = document.getElementById('prev-btn');
+const prevBadge= document.getElementById('prev-badge');
+
+function updatePreview() {
+    if (prevBtn  && pcInput) prevBtn.style.background  = pcInput.value;
+    if (prevBadge && scInput) prevBadge.style.background = scInput.value;
+}
+if (pcInput)  pcInput.addEventListener('input',  () => { if(pcHex) pcHex.value = pcInput.value; updatePreview(); });
+if (scInput)  scInput.addEventListener('input',  () => { if(scHex) scHex.value = scInput.value; updatePreview(); });
+</script>
 
 <?php require_once __DIR__ . '/../includes/admin_footer.php'; ?>
