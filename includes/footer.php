@@ -218,6 +218,32 @@ $floatDoctors = getDoctors($pdo);
 .appointment-float:active {
     transform: translateY(-50%) scale(0.97);
 }
+@media (max-width: 575.98px) {
+    .appointment-float {
+        top: auto;
+        right: 50%;
+        bottom: 0;
+        transform: translateX(50%);
+        writing-mode: horizontal-tb;
+        border-radius: 14px 14px 0 0;
+        padding: 11px 22px;
+        box-shadow: 0 -3px 20px rgba(13,110,253,0.3);
+        font-size: 0.88rem;
+        letter-spacing: 0;
+    }
+    .appointment-float:hover {
+        right: 50%;
+        padding-right: 22px;
+        bottom: 2px;
+        box-shadow: 0 -5px 25px rgba(13,110,253,0.45);
+    }
+    .appointment-float:active {
+        transform: translateX(50%) scale(0.97);
+    }
+    .appointment-float i {
+        font-size: 1rem;
+    }
+}
 #appointmentModal .form-control,
 #appointmentModal .form-select {
     border-radius: 8px;
