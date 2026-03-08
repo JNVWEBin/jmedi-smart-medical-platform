@@ -240,7 +240,7 @@ if (isDoctor()) {
 
     $recentPosts = $pdo->query("SELECT title, slug, author, created_at FROM posts WHERE status='published' ORDER BY created_at DESC LIMIT 3")->fetchAll();
     $topDoctors  = $pdo->query("SELECT d.doctor_id, d.name, d.photo, d.specialization, d.status, dep.name AS department_name FROM doctors d LEFT JOIN departments dep ON d.department_id = dep.department_id WHERE d.status = 1 ORDER BY d.doctor_id ASC LIMIT 5")->fetchAll();
-    $recentPatients = $pdo->query("SELECT appointment_id, patient_name, patient_phone, appointment_date, appointment_time, status FROM appointments ORDER BY created_at DESC LIMIT 8")->fetchAll();
+    $recentPatients = $pdo->query("SELECT appointment_id, patient_name, appointment_date, appointment_time, status FROM appointments ORDER BY created_at DESC LIMIT 8")->fetchAll();
 
     $dayOfWeek = date('N');
     $weekStart = date('Y-m-d', strtotime('-' . ($dayOfWeek - 1) . ' days'));
