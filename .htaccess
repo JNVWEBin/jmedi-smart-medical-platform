@@ -5,13 +5,24 @@ Options -MultiViews
     RewriteEngine On
     RewriteBase /
 
+    # Home
     RewriteRule ^$ public/index.php [L]
 
-    RewriteRule ^index\.php$ public/index.php [L,R=301]
+    # Redirect bare index.php to home
+    RewriteRule ^index\.php$ / [L,R=301]
 
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ $1 [L]
+    # Pass through real files and directories (assets, admin, public, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route clean single-segment URLs to public/NAME.php
+    # e.g. /doctors → public/doctors.php, /blog → public/blog.php
+    RewriteCond %{DOCUMENT_ROOT}/public/%1.php -f
+    RewriteRule ^([^/]+)/?$ public/$1.php [L,QSA]
+
+    # Fallback — send everything else to public/index.php (handles its own 404)
+    RewriteRule ^(.*)$ public/index.php [L,QSA]
 </IfModule>
 
 <IfModule mod_headers.c>
