@@ -1,13 +1,16 @@
 <?php
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri = rtrim($uri, '/') ?: '/';
 
+// Home
 if ($uri === '/' || $uri === '/index.php') {
     require __DIR__ . '/public/index.php';
     return;
 }
 
-$filePath = __DIR__ . $uri;
-if (preg_match('/\.(css|js|png|jpg|jpeg|gif|webp|ico|svg|woff|woff2|ttf|eot)$/i', $uri)) {
+// Serve real static files (css, js, images, fonts)
+if (preg_match('/\.(css|js|png|jpg|jpeg|gif|webp|ico|svg|woff|woff2|ttf|eot|map)$/i', $uri)) {
+    $filePath = __DIR__ . $uri;
     if (file_exists($filePath)) {
         return false;
     }
@@ -15,6 +18,12 @@ if (preg_match('/\.(css|js|png|jpg|jpeg|gif|webp|ico|svg|woff|woff2|ttf|eot)$/i'
     return;
 }
 
+// Serve real PHP files and directories as-is (admin/*, public/*, includes/*, etc.)
+$filePath = __DIR__ . $uri;
+if (file_exists($filePath . '.php')) {
+    require $filePath . '.php';
+    return;
+}
 if (is_dir($filePath)) {
     $indexPath = rtrim($filePath, '/') . '/index.php';
     if (file_exists($indexPath)) {
@@ -22,9 +31,25 @@ if (is_dir($filePath)) {
         return;
     }
 }
-
 if (file_exists($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'php') {
     require $filePath;
+    return;
+}
+
+// Clean URL routing: /doctors → public/doctors.php, /blog → public/blog.php, etc.
+$segment = ltrim($uri, '/');
+if (!str_contains($segment, '/')) {
+    $publicFile = __DIR__ . '/public/' . $segment . '.php';
+    if (file_exists($publicFile)) {
+        require $publicFile;
+        return;
+    }
+}
+
+// Fallback — delegate to public/index.php (which handles its own 404)
+$fallback = __DIR__ . '/public/index.php';
+if (file_exists($fallback)) {
+    require $fallback;
     return;
 }
 
