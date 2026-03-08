@@ -74,6 +74,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $s = getSettings($pdo);
 
+/* ── Fallback: define uploadImageDetailed here if functions.php is not yet updated ── */
+if (!function_exists('uploadImageDetailed')) {
+    function uploadImageDetailed(array $file, string $dir = 'uploads'): string {
+        $uploadDir = __DIR__ . '/../assets/' . $dir . '/';
+        if (!is_dir($uploadDir)) {
+            if (!@mkdir($uploadDir, 0755, true)) {
+                $e = 'Cannot create upload directory: ' . $uploadDir . ' — check server permissions.';
+                error_log('[JMedi Upload] ' . $e); return $e;
+            }
+        }
+        if (!is_writable($uploadDir)) {
+            $e = 'Upload directory not writable: ' . $uploadDir;
+            error_log('[JMedi Upload] ' . $e); return $e;
+        }
+        $phpErrMap = [
+            UPLOAD_ERR_INI_SIZE   => 'File too large — exceeds PHP upload_max_filesize (' . ini_get('upload_max_filesize') . ').',
+            UPLOAD_ERR_FORM_SIZE  => 'File exceeds form size limit.',
+            UPLOAD_ERR_PARTIAL    => 'File only partially uploaded. Try again.',
+            UPLOAD_ERR_NO_FILE    => 'No file was sent.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server has no temporary folder.',
+            UPLOAD_ERR_CANT_WRITE => 'Server cannot write to disk.',
+            UPLOAD_ERR_EXTENSION  => 'A PHP extension blocked the upload.',
+        ];
+        if (isset($file['error']) && $file['error'] !== UPLOAD_ERR_OK) {
+            $e = $phpErrMap[$file['error']] ?? 'PHP upload error code: ' . $file['error'];
+            error_log('[JMedi Upload] ' . $e); return $e;
+        }
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            $e = 'No valid uploaded file (tmp_name missing).';
+            error_log('[JMedi Upload] ' . $e); return $e;
+        }
+        $allowedMimes = ['image/jpeg','image/png','image/gif','image/webp','image/x-icon','image/vnd.microsoft.icon'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        if (!in_array($realMime, $allowedMimes)) {
+            $e = 'Invalid file type: ' . $realMime . '. Allowed: JPG/PNG/GIF/WEBP/ICO.';
+            error_log('[JMedi Upload] ' . $e); return $e;
+        }
+        if ($file['size'] > 10 * 1024 * 1024) {
+            $e = 'File too large (' . round($file['size']/1024/1024,1) . ' MB). Max 10 MB.';
+            error_log('[JMedi Upload] ' . $e); return $e;
+        }
+        $allowedExts = ['jpg','jpeg','png','gif','webp','ico'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowedExts)) {
+            $ext = str_replace(['jpeg','x-icon','vnd.microsoft.icon'],['jpg','ico','ico'], explode('/',$realMime)[1] ?? 'jpg');
+        }
+        $filename = bin2hex(random_bytes(16)) . '.' . $ext;
+        $filepath = $uploadDir . $filename;
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            error_log('[JMedi Upload] SUCCESS: ' . $filepath);
+            return '/assets/' . $dir . '/' . $filename;
+        }
+        $e = 'move_uploaded_file() failed. Target: ' . $filepath . ' — check permissions.';
+        error_log('[JMedi Upload] ' . $e); return $e;
+    }
+}
+
 /* ── Active tab ── */
 $tab = $_GET['tab'] ?? 'general';
 ?>
