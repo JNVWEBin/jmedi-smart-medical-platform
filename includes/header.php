@@ -62,10 +62,14 @@ try {
                 <span style="color:var(--primary);font-size:1.6rem;">J</span><span style="color:var(--secondary);font-size:1.6rem;">Medi</span>
             <?php endif; ?>
         </a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-            <span class="navbar-toggler-icon"></span>
+        <button class="mob-hamburger d-lg-none" id="mobMenuBtn"
+                data-bs-toggle="offcanvas" data-bs-target="#mobileNavDrawer"
+                aria-controls="mobileNavDrawer" aria-label="Open navigation">
+            <span class="ham-bar"></span>
+            <span class="ham-bar"></span>
+            <span class="ham-bar"></span>
         </button>
-        <div class="collapse navbar-collapse" id="mainNav">
+        <div class="collapse navbar-collapse d-none d-lg-flex" id="mainNav">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                 <?php if (!empty($navMenus)): ?>
                     <?php foreach ($navMenus as $menuItem):
@@ -124,6 +128,93 @@ try {
         </div>
     </div>
 </nav>
+
+<!-- Mobile Navigation Drawer -->
+<div class="offcanvas offcanvas-end mobile-nav-drawer" tabindex="-1" id="mobileNavDrawer" aria-labelledby="mobileNavLabel">
+    <div class="mob-drawer-header">
+        <div class="mob-drawer-logo">
+            <?php if ($frontendLogo): ?>
+                <img src="<?= e($frontendLogo) ?>" alt="<?= e($siteName) ?>" style="height:40px;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
+            <?php else: ?>
+                <span style="color:#fff;font-size:1.7rem;font-weight:800;letter-spacing:-1px;">J<span style="color:var(--secondary);">Medi</span></span>
+            <?php endif; ?>
+        </div>
+        <button type="button" class="mob-drawer-close" data-bs-dismiss="offcanvas" aria-label="Close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="mob-drawer-body">
+        <nav class="mob-nav-links">
+            <?php if (!empty($navMenus)): ?>
+                <?php foreach ($navMenus as $i => $menuItem):
+                    $menuSlug = basename($menuItem['menu_link'], '.php');
+                    $isActive = ($menuItem['menu_link'] === '/' && $currentPage === 'index') || $menuSlug === $currentPage;
+                    $icons = ['/' => 'fa-home', 'departments' => 'fa-hospital', 'doctors' => 'fa-user-md', 'blog' => 'fa-newspaper', 'contact' => 'fa-envelope'];
+                    $icon = $icons[$menuSlug] ?? $icons[$menuItem['menu_link']] ?? 'fa-circle';
+                ?>
+                <a href="<?= e($menuItem['menu_link']) ?>" class="mob-nav-link <?= $isActive ? 'active' : '' ?>" data-bs-dismiss="offcanvas" style="--i:<?= $i ?>;">
+                    <span class="mob-link-icon"><i class="fas <?= $icon ?>"></i></span>
+                    <?= e($menuItem['menu_name']) ?>
+                </a>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <?php
+                $defaultLinks = [
+                    ['href' => '/',                         'label' => 'Home',        'icon' => 'fa-home',     'key' => 'index'],
+                    ['href' => '/public/departments.php',   'label' => 'Departments', 'icon' => 'fa-hospital', 'key' => 'departments'],
+                    ['href' => '/public/doctors.php',       'label' => 'Doctors',     'icon' => 'fa-user-md',  'key' => 'doctors'],
+                    ['href' => '/public/blog.php',          'label' => 'Blog',        'icon' => 'fa-newspaper','key' => 'blog'],
+                    ['href' => '/public/contact.php',       'label' => 'Contact',     'icon' => 'fa-envelope', 'key' => 'contact'],
+                ];
+                foreach ($defaultLinks as $i => $link): ?>
+                <a href="<?= $link['href'] ?>" class="mob-nav-link <?= $currentPage === $link['key'] ? 'active' : '' ?>" data-bs-dismiss="offcanvas" style="--i:<?= $i ?>;">
+                    <span class="mob-link-icon"><i class="fas <?= $link['icon'] ?>"></i></span>
+                    <?= $link['label'] ?>
+                </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </nav>
+
+        <div class="mob-drawer-cta">
+            <a href="/public/appointment.php" class="btn mob-appt-btn w-100" data-bs-dismiss="offcanvas">
+                <i class="fas fa-calendar-check me-2"></i> Book Appointment
+            </a>
+            <?php if (!empty($_SESSION['patient_id'])): ?>
+            <a href="/public/patient-dashboard.php" class="btn mob-login-btn w-100 mt-2" data-bs-dismiss="offcanvas">
+                <i class="fas fa-th-large me-2"></i> My Dashboard
+            </a>
+            <?php elseif (isLoggedIn()): ?>
+            <a href="/admin/" class="btn mob-login-btn w-100 mt-2" data-bs-dismiss="offcanvas">
+                <i class="fas fa-tachometer-alt me-2"></i> Admin Panel
+            </a>
+            <?php else: ?>
+            <button class="btn mob-login-btn w-100 mt-2" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <i class="fas fa-sign-in-alt me-2"></i> Login / Register
+            </button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="mob-drawer-footer">
+        <?php if (!empty($settings['phone'])): ?>
+        <a href="tel:<?= e($settings['phone']) ?>" class="mob-footer-item">
+            <i class="fas fa-phone-alt"></i>
+            <span><?= e($settings['phone']) ?></span>
+        </a>
+        <?php endif; ?>
+        <?php if (!empty($settings['email'])): ?>
+        <a href="mailto:<?= e($settings['email']) ?>" class="mob-footer-item">
+            <i class="fas fa-envelope"></i>
+            <span><?= e($settings['email']) ?></span>
+        </a>
+        <?php endif; ?>
+        <div class="mob-footer-item">
+            <i class="fas fa-clock"></i>
+            <span>Mon–Sat: 8:00 AM – 7:00 PM</span>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
