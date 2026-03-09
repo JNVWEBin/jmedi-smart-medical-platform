@@ -205,7 +205,7 @@ function getHeroSlide(PDO $pdo, int $id): ?array {
 
 function uploadImage(array $file, string $dir = 'uploads'): ?string {
     $result = uploadImageDetailed($file, $dir);
-    return (str_starts_with($result, '/')) ? $result : null;
+    return (substr($result, 0, 1) === '/') ? $result : null;
 }
 
 /**
