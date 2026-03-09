@@ -95,11 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id']) && !iss
                 ':patients_treated'   => (int)($_POST['patients_treated'] ?? 0),
                 ':success_rate'       => max(0, min(100, (int)($_POST['success_rate'] ?? 98))),
                 ':rating'             => max(0, min(5, (float)($_POST['rating'] ?? 5.0))),
+                ':profile_template'   => max(1, min(2, (int)($_POST['profile_template'] ?? 1))),
                 ':status'             => (int)($_POST['status'] ?? 1),
             ];
 
             if ($doctorId) {
-                $sql = "UPDATE doctors SET name=:name, slug=:slug, department_id=:department_id, qualification=:qualification, experience=:experience, specialization=:specialization, languages=:languages, bio=:bio, certifications=:certifications, services=:services, email=:email, phone=:phone, available_days=:available_days, available_time=:available_time, consultation_fee=:consultation_fee, consultation_types=:consultation_types, video_consultation=:video_consultation, clinic_name=:clinic_name, clinic_address=:clinic_address, clinic_location=:clinic_location, patients_treated=:patients_treated, success_rate=:success_rate, rating=:rating, status=:status";
+                $sql = "UPDATE doctors SET name=:name, slug=:slug, department_id=:department_id, qualification=:qualification, experience=:experience, specialization=:specialization, languages=:languages, bio=:bio, certifications=:certifications, services=:services, email=:email, phone=:phone, available_days=:available_days, available_time=:available_time, consultation_fee=:consultation_fee, consultation_types=:consultation_types, video_consultation=:video_consultation, clinic_name=:clinic_name, clinic_address=:clinic_address, clinic_location=:clinic_location, patients_treated=:patients_treated, success_rate=:success_rate, rating=:rating, profile_template=:profile_template, status=:status";
                 if ($photo) { $sql .= ", photo=:photo"; $data[':photo'] = $photo; }
                 $sql .= " WHERE doctor_id=:id";
                 $data[':id'] = $doctorId;
@@ -108,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id']) && !iss
                 $action = 'edit';
             } else {
                 $data[':photo'] = $photo;
-                $pdo->prepare("INSERT INTO doctors (name, slug, photo, department_id, qualification, experience, specialization, languages, bio, certifications, services, email, phone, available_days, available_time, consultation_fee, consultation_types, video_consultation, clinic_name, clinic_address, clinic_location, patients_treated, success_rate, rating, status) VALUES (:name, :slug, :photo, :department_id, :qualification, :experience, :specialization, :languages, :bio, :certifications, :services, :email, :phone, :available_days, :available_time, :consultation_fee, :consultation_types, :video_consultation, :clinic_name, :clinic_address, :clinic_location, :patients_treated, :success_rate, :rating, :status)")->execute($data);
+                $pdo->prepare("INSERT INTO doctors (name, slug, photo, department_id, qualification, experience, specialization, languages, bio, certifications, services, email, phone, available_days, available_time, consultation_fee, consultation_types, video_consultation, clinic_name, clinic_address, clinic_location, patients_treated, success_rate, rating, profile_template, status) VALUES (:name, :slug, :photo, :department_id, :qualification, :experience, :specialization, :languages, :bio, :certifications, :services, :email, :phone, :available_days, :available_time, :consultation_fee, :consultation_types, :video_consultation, :clinic_name, :clinic_address, :clinic_location, :patients_treated, :success_rate, :rating, :profile_template, :status)")->execute($data);
                 $success = 'Doctor added successfully.';
                 $action = 'list';
             }
@@ -304,6 +305,36 @@ $allDoctors = getDoctors($pdo, null, false);
             </div>
         </div>
 
+        <div class="doc-section">
+            <div class="doc-section-title"><i class="fas fa-palette"></i>Profile Page Template</div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <p class="text-muted small mb-2">Choose how this doctor's public profile page will look to patients.</p>
+                    <div class="d-flex gap-3 flex-wrap" id="templatePicker">
+                        <?php
+                        $curTpl = (int)($editDoctor['profile_template'] ?? 1);
+                        $templates = [
+                            1 => ['icon' => 'fas fa-id-card', 'color' => '#0D6EFD', 'title' => 'Template 1 — Classic', 'desc' => 'Dark blue gradient hero · Card layout · Professional'],
+                            2 => ['icon' => 'fas fa-star', 'color' => '#0891b2', 'title' => 'Template 2 — Modern', 'desc' => 'Light airy hero · Marquee strip · Floating stats · Spinning badge'],
+                        ];
+                        foreach ($templates as $tval => $tinfo):
+                        $selected = $curTpl === $tval;
+                        ?>
+                        <label class="t-picker <?= $selected ? 'selected' : '' ?>" for="tpl<?= $tval ?>">
+                            <input type="radio" name="profile_template" id="tpl<?= $tval ?>" value="<?= $tval ?>" <?= $selected ? 'checked' : '' ?> class="d-none">
+                            <div class="t-picker-icon" style="background:<?= $tval === 2 ? 'rgba(8,145,178,0.14)' : 'rgba(13,110,253,0.14)' ?>;color:<?= $tinfo['color'] ?>"><i class="<?= $tinfo['icon'] ?>"></i></div>
+                            <div class="t-picker-body">
+                                <strong><?= $tinfo['title'] ?></strong>
+                                <small><?= $tinfo['desc'] ?></small>
+                            </div>
+                            <i class="fas fa-check-circle t-picker-check" style="color:<?= $tinfo['color'] ?>"></i>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex gap-2 px-3 pb-3 pt-2">
             <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;"><i class="fas fa-save me-2"></i>Save Doctor</button>
             <a href="/admin/doctors.php" class="btn btn-outline-secondary px-4" style="border-radius:10px;">Cancel</a>
@@ -427,7 +458,26 @@ document.getElementById('photoInput')?.addEventListener('change', function () {
 <?php if ($editDoctor && $editDoctor['slug']): ?>
 document.getElementById('doctorSlug').dataset.manual = '1';
 <?php endif; ?>
+
+document.querySelectorAll('#templatePicker input[type=radio]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        document.querySelectorAll('#templatePicker .t-picker').forEach(l => l.classList.remove('selected'));
+        radio.closest('.t-picker').classList.add('selected');
+    });
+});
 </script>
+
+<style>
+.t-picker { display:flex; align-items:center; gap:0.85rem; border:2px solid var(--admin-border); border-radius:14px; padding:0.85rem 1.1rem; cursor:pointer; transition:all 0.2s; background:var(--admin-surface); flex:1; min-width:220px; max-width:340px; }
+.t-picker:hover { border-color:var(--admin-accent); box-shadow:0 2px 12px rgba(59,130,246,0.12); }
+.t-picker.selected { border-color:var(--admin-accent); background:rgba(59,130,246,0.04); box-shadow:0 2px 16px rgba(59,130,246,0.15); }
+.t-picker-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; }
+.t-picker-body { flex:1; }
+.t-picker-body strong { display:block; font-size:0.88rem; color:var(--admin-text); font-weight:700; margin-bottom:0.15rem; }
+.t-picker-body small { font-size:0.74rem; color:var(--admin-text-muted); }
+.t-picker-check { font-size:1.1rem; flex-shrink:0; opacity:0; transition:opacity 0.2s; }
+.t-picker.selected .t-picker-check { opacity:1; }
+</style>
 
 <?php else: ?>
 
