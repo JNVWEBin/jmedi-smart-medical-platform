@@ -227,21 +227,24 @@ $abtBtnLink = $aboutData['button_link'] ?? '/public/departments.php';
             <h2>Our Medical Services</h2>
             <p>We provide specialized medical services across a wide range of departments</p>
         </div>
-        <div class="row g-4">
-            <?php foreach (array_slice($departments, 0, 6) as $i => $dept): ?>
-            <div class="col-lg-4 col-md-6 fade-in delay-<?= ($i % 3) + 1 ?>">
-                <div class="dept-card">
-                    <div class="icon-box">
-                        <i class="fas <?= e($dept['icon'] ?? 'fa-heartbeat') ?>"></i>
+        <div class="swiper mob-swiper dept-swiper">
+            <div class="swiper-wrapper">
+                <?php foreach (array_slice($departments, 0, 6) as $i => $dept): ?>
+                <div class="swiper-slide">
+                    <div class="dept-card">
+                        <div class="icon-box">
+                            <i class="fas <?= e($dept['icon'] ?? 'fa-heartbeat') ?>"></i>
+                        </div>
+                        <h5><?= e($dept['name']) ?></h5>
+                        <p><?= e(truncateText($dept['description'] ?? '', 100)) ?></p>
+                        <a href="/public/departments.php?slug=<?= e($dept['slug']) ?>" class="btn btn-sm btn-outline-primary">
+                            Learn More <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <h5><?= e($dept['name']) ?></h5>
-                    <p><?= e(truncateText($dept['description'] ?? '', 100)) ?></p>
-                    <a href="/public/departments.php?slug=<?= e($dept['slug']) ?>" class="btn btn-sm btn-outline-primary">
-                        Learn More <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
+            <div class="swiper-pagination dept-pagination mob-swiper-pagination"></div>
         </div>
     </div>
 </section>
@@ -255,33 +258,36 @@ $abtBtnLink = $aboutData['button_link'] ?? '/public/departments.php';
             <h2>Specialist Doctors</h2>
             <p>Experienced and dedicated medical professionals committed to your health</p>
         </div>
-        <div class="row g-4">
-            <?php foreach (array_slice($doctors, 0, 4) as $i => $doc): ?>
-            <div class="col-lg-3 col-md-6 scale-in delay-<?= $i + 1 ?>">
-                <div class="card doctor-card">
-                    <div class="doctor-img">
-                        <?php if ($doc['photo']): ?>
-                            <img src="<?= e($doc['photo']) ?>" alt="<?= e($doc['name']) ?>">
-                        <?php else: ?>
-                            <i class="fas fa-user-md placeholder-icon"></i>
-                        <?php endif; ?>
-                        <div class="doctor-overlay">
-                            <a href="/public/doctor-profile.php?id=<?= $doc['doctor_id'] ?>" class="social-icon"><i class="fas fa-link"></i></a>
-                            <?php if (!empty($doc['email'])): ?>
-                            <a href="mailto:<?= e($doc['email']) ?>" class="social-icon"><i class="fas fa-envelope"></i></a>
+        <div class="swiper mob-swiper team-swiper">
+            <div class="swiper-wrapper">
+                <?php foreach (array_slice($doctors, 0, 4) as $i => $doc): ?>
+                <div class="swiper-slide">
+                    <div class="card doctor-card">
+                        <div class="doctor-img">
+                            <?php if ($doc['photo']): ?>
+                                <img src="<?= e($doc['photo']) ?>" alt="<?= e($doc['name']) ?>">
+                            <?php else: ?>
+                                <i class="fas fa-user-md placeholder-icon"></i>
                             <?php endif; ?>
-                            <?php if (!empty($doc['phone'])): ?>
-                            <a href="tel:<?= e($doc['phone']) ?>" class="social-icon"><i class="fas fa-phone"></i></a>
-                            <?php endif; ?>
+                            <div class="doctor-overlay">
+                                <a href="/public/doctor-profile.php?id=<?= $doc['doctor_id'] ?>" class="social-icon"><i class="fas fa-link"></i></a>
+                                <?php if (!empty($doc['email'])): ?>
+                                <a href="mailto:<?= e($doc['email']) ?>" class="social-icon"><i class="fas fa-envelope"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($doc['phone'])): ?>
+                                <a href="tel:<?= e($doc['phone']) ?>" class="social-icon"><i class="fas fa-phone"></i></a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5><a href="/public/doctor-profile.php?id=<?= $doc['doctor_id'] ?>" class="text-decoration-none text-dark"><?= e($doc['name']) ?></a></h5>
+                            <span class="dept-badge"><?= e($doc['department_name'] ?? '') ?></span>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <h5><a href="/public/doctor-profile.php?id=<?= $doc['doctor_id'] ?>" class="text-decoration-none text-dark"><?= e($doc['name']) ?></a></h5>
-                        <span class="dept-badge"><?= e($doc['department_name'] ?? '') ?></span>
-                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
+            <div class="swiper-pagination team-pagination mob-swiper-pagination"></div>
         </div>
         <div class="text-center mt-5 fade-in">
             <a href="/public/doctors.php" class="btn btn-primary px-5 py-2" style="border-radius:30px;">
@@ -468,19 +474,22 @@ $procSteps = $processData['steps'] ?? [
             <span class="subtitle"><?= e($procSubtitle) ?></span>
             <h2><?= e($procHeading) ?></h2>
         </div>
-        <div class="row g-4">
-            <?php foreach ($procSteps as $stepIdx => $step): ?>
-            <div class="col-lg-3 col-md-6 fade-in delay-<?= $stepIdx + 1 ?>">
-                <div class="process-card">
-                    <div class="process-icon">
-                        <i class="fas <?= e($step['icon'] ?? 'fa-circle') ?>"></i>
-                        <span class="process-number"><?= str_pad($stepIdx + 1, 2, '0', STR_PAD_LEFT) ?></span>
+        <div class="swiper mob-swiper process-swiper">
+            <div class="swiper-wrapper">
+                <?php foreach ($procSteps as $stepIdx => $step): ?>
+                <div class="swiper-slide">
+                    <div class="process-card">
+                        <div class="process-icon">
+                            <i class="fas <?= e($step['icon'] ?? 'fa-circle') ?>"></i>
+                            <span class="process-number"><?= str_pad($stepIdx + 1, 2, '0', STR_PAD_LEFT) ?></span>
+                        </div>
+                        <h5><?= e($step['title']) ?></h5>
+                        <p><?= e($step['description']) ?></p>
                     </div>
-                    <h5><?= e($step['title']) ?></h5>
-                    <p><?= e($step['description']) ?></p>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
+            <div class="swiper-pagination process-pagination mob-swiper-pagination"></div>
         </div>
     </div>
 </section>
@@ -659,31 +668,34 @@ document.getElementById('videoModal').addEventListener('hidden.bs.modal', functi
             <h2>Our Latest News</h2>
             <p>Stay informed with the latest medical news and health tips</p>
         </div>
-        <div class="row g-4">
-            <?php foreach ($latestPosts as $i => $post): ?>
-            <div class="col-lg-4 col-md-6 fade-in delay-<?= $i + 1 ?>">
-                <div class="card blog-card">
-                    <div class="blog-img">
-                        <?php if ($post['featured_image']): ?>
-                            <img src="<?= e($post['featured_image']) ?>" alt="<?= e($post['title']) ?>">
-                        <?php else: ?>
-                            <i class="fas fa-newspaper placeholder-icon"></i>
-                        <?php endif; ?>
-                        <span class="blog-date-badge"><i class="far fa-calendar-alt me-1"></i><?= formatDate($post['created_at']) ?></span>
-                    </div>
-                    <div class="card-body">
-                        <div class="blog-meta">
-                            <i class="fas fa-user"></i> <?= e($post['author'] ?? 'Admin') ?>
+        <div class="swiper mob-swiper articles-swiper">
+            <div class="swiper-wrapper">
+                <?php foreach ($latestPosts as $i => $post): ?>
+                <div class="swiper-slide">
+                    <div class="card blog-card">
+                        <div class="blog-img">
+                            <?php if ($post['featured_image']): ?>
+                                <img src="<?= e($post['featured_image']) ?>" alt="<?= e($post['title']) ?>">
+                            <?php else: ?>
+                                <i class="fas fa-newspaper placeholder-icon"></i>
+                            <?php endif; ?>
+                            <span class="blog-date-badge"><i class="far fa-calendar-alt me-1"></i><?= formatDate($post['created_at']) ?></span>
                         </div>
-                        <h5><?= e($post['title']) ?></h5>
-                        <p class="text-muted small"><?= e(truncateText($post['content'] ?? '', 110)) ?></p>
-                        <a href="/public/blog.php?slug=<?= e($post['slug']) ?>" class="read-more">
-                            Read More <i class="fas fa-arrow-right"></i>
-                        </a>
+                        <div class="card-body">
+                            <div class="blog-meta">
+                                <i class="fas fa-user"></i> <?= e($post['author'] ?? 'Admin') ?>
+                            </div>
+                            <h5><?= e($post['title']) ?></h5>
+                            <p class="text-muted small"><?= e(truncateText($post['content'] ?? '', 110)) ?></p>
+                            <a href="/public/blog.php?slug=<?= e($post['slug']) ?>" class="read-more">
+                                Read More <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
+            <div class="swiper-pagination articles-pagination mob-swiper-pagination"></div>
         </div>
     </div>
 </section>
