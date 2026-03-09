@@ -10,25 +10,26 @@ $db_url = getenv('DATABASE_URL');
 
 if ($db_url) {
     $parsed = parse_url($db_url);
-    $scheme = $parsed['scheme'] ?? 'mysql';
+    $scheme = $parsed['scheme'] ?? 'pgsql';
     $host   = $parsed['host'] ?? 'localhost';
-    $port   = $parsed['port'] ?? ($scheme === 'mysql' ? 3306 : 5432);
+    $port   = $parsed['port'] ?? (substr($scheme, 0, 5) === 'mysql' ? 3306 : 5432);
     $dbname = ltrim($parsed['path'] ?? '', '/');
     $user   = $parsed['user'] ?? '';
     $pass   = $parsed['pass'] ?? '';
 
-    if (str_starts_with($scheme, 'postgres')) {
+    if (substr($scheme, 0, 8) === 'postgres') {
         $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
     } else {
         $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
     }
 } else {
+    /* cPanel production — PostgreSQL */
     $host   = 'localhost';
-    $port   = 3306;
+    $port   = 5432;
     $dbname = 'svaobtfy_jmedi';
     $user   = 'svaobtfy_jmedi';
     $pass   = 'sa1T4HXr@7602626264';
-    $dsn    = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+    $dsn    = "pgsql:host=$host;port=$port;dbname=$dbname";
 }
 
 try {
