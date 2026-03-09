@@ -1905,3 +1905,46 @@ a {
     color: var(--secondary);
 }
 .mobile-nav-drawer .offcanvas-backdrop { background: rgba(15,27,42,0.65); }
+
+/* ═══════════════════════════════════════════
+   MOBILE BUTTON FIXES
+═══════════════════════════════════════════ */
+
+/* ── CTA "Ready to Get Started?" buttons ── */
+.cta-ready-btns {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.cta-ready-btn {
+    padding: 0.75rem 2.2rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+@media (max-width: 575.98px) {
+    .cta-ready-btns {
+        flex-direction: row;
+        gap: 0.6rem;
+    }
+    .cta-ready-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.82rem;
+        flex: 1 1 0;
+        min-width: 0;
+        letter-spacing: 0;
+    }
+    .cta-ready-btn i { display: none; }
+}
+
+/* ── Hero section buttons ── */
+@media (max-width: 575.98px) {
+    .hero-btn {
+        padding: 0.65rem 1.4rem;
+        font-size: 0.82rem;
+        letter-spacing: 0;
+    }
+    .hero-section .d-flex {
+        gap: 0.6rem !important;
+    }
+}
