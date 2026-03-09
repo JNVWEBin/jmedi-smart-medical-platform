@@ -1460,105 +1460,118 @@ a {
     }
 }
 
-/* ── Departments: 3-col grid on ≥992px, 2-col on ≥768px ── */
+/* ══════════════════════════════════════════════════════════
+   DESKTOP/TABLET GRID OVERRIDE FOR MOB-SWIPER SECTIONS
+   Uses display:grid to fully bypass Swiper's inline width/
+   transform, ensuring a proper multi-column layout.
+══════════════════════════════════════════════════════════ */
+
+/* ── Departments: 3-col ≥992px, 2-col 768-991px ── */
 @media (min-width: 992px) {
-    .dept-swiper { overflow: visible; padding-bottom: 0 !important; }
+    .dept-swiper { overflow: visible !important; padding-bottom: 0 !important; }
     .dept-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1.5rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.5rem;
+        transition: none !important;
     }
-    .dept-swiper .swiper-slide {
-        width: calc(33.333% - 1rem) !important;
-        margin-bottom: 0;
-    }
+    .dept-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
     .dept-swiper .dept-pagination { display: none !important; }
 }
 @media (min-width: 768px) and (max-width: 991.98px) {
-    .dept-swiper { overflow: visible; padding-bottom: 2.5rem !important; }
+    .dept-swiper { overflow: visible !important; padding-bottom: 2.5rem !important; }
     .dept-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.25rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.25rem;
+        transition: none !important;
     }
-    .dept-swiper .swiper-slide {
-        width: calc(50% - 0.65rem) !important;
-    }
+    .dept-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
 }
 
-/* ── Team (Doctors): 4-col on ≥992px, 2-col on ≥768px ── */
+/* ── Team (Doctors): 4-col ≥992px, 2-col 768-991px ── */
 @media (min-width: 992px) {
-    .team-swiper { overflow: visible; padding-bottom: 0 !important; }
+    .team-swiper { overflow: visible !important; padding-bottom: 0 !important; }
     .team-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 1.5rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.5rem;
+        transition: none !important;
     }
-    .team-swiper .swiper-slide {
-        width: calc(25% - 1.13rem) !important;
-    }
+    .team-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
     .team-swiper .team-pagination { display: none !important; }
 }
 @media (min-width: 768px) and (max-width: 991.98px) {
-    .team-swiper { overflow: visible; padding-bottom: 2.5rem !important; }
+    .team-swiper { overflow: visible !important; padding-bottom: 2.5rem !important; }
     .team-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.25rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.25rem;
+        transition: none !important;
     }
-    .team-swiper .swiper-slide {
-        width: calc(50% - 0.65rem) !important;
-    }
+    .team-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
 }
 
-/* ── Process: 4-col on ≥992px, 2-col on ≥768px ── */
+/* ── Process: 4-col ≥992px, 2-col 768-991px ── */
 @media (min-width: 992px) {
-    .process-swiper { overflow: visible; padding-bottom: 0 !important; }
+    .process-swiper { overflow: visible !important; padding-bottom: 0 !important; }
     .process-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 1.5rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.5rem;
+        transition: none !important;
     }
-    .process-swiper .swiper-slide {
-        width: calc(25% - 1.13rem) !important;
-    }
+    .process-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
     .process-swiper .process-pagination { display: none !important; }
 }
 @media (min-width: 768px) and (max-width: 991.98px) {
-    .process-swiper { overflow: visible; padding-bottom: 2.5rem !important; }
+    .process-swiper { overflow: visible !important; padding-bottom: 2.5rem !important; }
     .process-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.25rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.25rem;
+        transition: none !important;
     }
-    .process-swiper .swiper-slide {
-        width: calc(50% - 0.65rem) !important;
-    }
+    .process-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
 }
 
-/* ── Articles: 3-col on ≥992px, 2-col on ≥768px ── */
+/* ── Articles: 3-col ≥992px, 2-col 768-991px ── */
 @media (min-width: 992px) {
-    .articles-swiper { overflow: visible; padding-bottom: 0 !important; }
+    .articles-swiper { overflow: visible !important; padding-bottom: 0 !important; }
     .articles-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1.5rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.5rem;
+        transition: none !important;
     }
-    .articles-swiper .swiper-slide {
-        width: calc(33.333% - 1rem) !important;
-    }
+    .articles-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
     .articles-swiper .articles-pagination { display: none !important; }
 }
 @media (min-width: 768px) and (max-width: 991.98px) {
-    .articles-swiper { overflow: visible; padding-bottom: 2.5rem !important; }
+    .articles-swiper { overflow: visible !important; padding-bottom: 2.5rem !important; }
     .articles-swiper .swiper-wrapper {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.25rem !important;
+        width: 100% !important;
         transform: none !important;
-        gap: 1.25rem;
+        transition: none !important;
     }
-    .articles-swiper .swiper-slide {
-        width: calc(50% - 0.65rem) !important;
-    }
+    .articles-swiper .swiper-slide { width: auto !important; margin: 0 !important; }
 }
 
 /* ── Testimonials: improve mobile peek ── */
