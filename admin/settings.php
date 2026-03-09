@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $settingKeys = [
                 'site_name','tagline','phone','emergency_phone','email','address',
                 'facebook','twitter','instagram','linkedin','youtube',
-                'primary_color','secondary_color','footer_text','whatsapp_number',
+                'primary_color','secondary_color','footer_text','whatsapp_number','whatsapp_message',
                 'appointment_email','google_maps_embed','meta_description','favicon'
             ];
             foreach ($settingKeys as $key) {
@@ -358,6 +358,36 @@ $tab = $_GET['tab'] ?? 'general';
                         </div>
                         <small class="text-muted">Country code + number, no +, no spaces. e.g. <code>18001234567</code></small>
                     </div>
+
+                    <!-- WhatsApp Pre-filled Message Template -->
+                    <div class="col-12">
+                        <div class="p-3 rounded-3" style="background:#f0fdf4;border:1.5px solid #86efac;">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                <label class="form-label fw-semibold mb-0" style="color:#15803d;">
+                                    <i class="fab fa-whatsapp me-1"></i> WhatsApp Pre-filled Message Template
+                                </label>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="resetWAMsg()">
+                                    <i class="fas fa-undo me-1"></i>Reset to Default
+                                </button>
+                            </div>
+                            <textarea name="whatsapp_message" id="waMsg" class="form-control" rows="4"
+                                placeholder="Hi {site_name}! I would like to request more information about your healthcare services..."
+                                oninput="updateWAPreview()"><?= e($s['whatsapp_message'] ?? '') ?></textarea>
+                            <div class="mt-2 d-flex gap-2 flex-wrap align-items-center">
+                                <small class="text-muted flex-grow-1">
+                                    Use <code>{site_name}</code> — it will be replaced with your hospital name automatically.<br>
+                                    Keep under 200 characters for best results on mobile WhatsApp.
+                                    <span id="waCharCount" class="ms-2 fw-semibold" style="color:#15803d;"></span>
+                                </small>
+                            </div>
+                            <!-- Live preview -->
+                            <div class="mt-3">
+                                <div class="settings-section-title mb-1" style="font-size:.72rem;">Live Preview — how it appears in WhatsApp</div>
+                                <div id="waPreview" style="background:#dcf8c6;border-radius:10px 10px 0 10px;padding:10px 14px;font-size:.88rem;color:#1a1a1a;max-width:360px;box-shadow:0 1px 4px rgba(0,0,0,.12);white-space:pre-wrap;word-break:break-word;font-family:'Segoe UI',sans-serif;"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-12">
                         <label class="form-label fw-semibold">Google Maps Embed URL</label>
                         <input type="text" name="google_maps_embed" class="form-control" value="<?= e($s['google_maps_embed'] ?? '') ?>" placeholder="https://www.google.com/maps/embed?pb=...">
@@ -535,6 +565,30 @@ function previewLogo(input, field) {
     };
     reader.readAsDataURL(file);
 }
+
+/* ── WhatsApp message template ── */
+const WA_DEFAULT = "Hi {site_name}! 👋\n\nI visited your website and I am interested in your healthcare services. Could you please provide me with more information?\n\nThank you!";
+const WA_SITE_NAME = <?= json_encode($s['site_name'] ?? 'JMedi') ?>;
+
+function updateWAPreview() {
+    const ta    = document.getElementById('waMsg');
+    const prev  = document.getElementById('waPreview');
+    const count = document.getElementById('waCharCount');
+    if (!ta) return;
+    const msg = ta.value || WA_DEFAULT;
+    const rendered = msg.replace(/\{site_name\}/g, WA_SITE_NAME);
+    if (prev)  prev.textContent  = rendered;
+    if (count) {
+        const len = rendered.length;
+        count.textContent = len + ' chars';
+        count.style.color = len > 300 ? '#dc2626' : len > 200 ? '#d97706' : '#15803d';
+    }
+}
+function resetWAMsg() {
+    const ta = document.getElementById('waMsg');
+    if (ta) { ta.value = WA_DEFAULT; updateWAPreview(); }
+}
+document.addEventListener('DOMContentLoaded', () => { updateWAPreview(); });
 
 /* Color picker ↔ hex input sync + live preview */
 const pcInput  = document.getElementById('pc');
