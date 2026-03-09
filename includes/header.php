@@ -177,7 +177,7 @@ try {
         </nav>
 
         <div class="mob-drawer-cta">
-            <a href="/public/appointment.php" class="btn mob-appt-btn w-100" data-bs-dismiss="offcanvas">
+            <a href="/public/appointment.php" class="btn mob-appt-btn w-100">
                 <i class="fas fa-calendar-check me-2"></i> Book Appointment
             </a>
             <?php if (!empty($_SESSION['patient_id'])): ?>
