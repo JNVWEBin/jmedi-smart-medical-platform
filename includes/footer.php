@@ -66,11 +66,13 @@ $floatDepartments = getDepartments($pdo);
 $floatDoctors = getDoctors($pdo);
 ?>
 
-<?php if ($whatsappNum): ?>
-<a href="https://wa.me/<?= e($whatsappNum) ?>" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+<?php
+$waHref  = $whatsappNum ? 'https://wa.me/' . e($whatsappNum) : '/public/contact.php';
+$waTarget = $whatsappNum ? 'target="_blank"' : '';
+?>
+<a href="<?= $waHref ?>" <?= $waTarget ?> class="whatsapp-float" title="<?= $whatsappNum ? 'Chat on WhatsApp' : 'Contact Us' ?>">
     <i class="fab fa-whatsapp"></i>
 </a>
-<?php endif; ?>
 
 <button type="button" class="appointment-float" data-bs-toggle="modal" data-bs-target="#appointmentModal" title="Book Appointment">
     <i class="fas fa-calendar-check"></i>
