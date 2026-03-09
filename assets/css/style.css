@@ -11,6 +11,10 @@
     --border-light: #e9ecef;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-body);
@@ -867,6 +871,13 @@ a {
 @media (max-width: 767.98px) {
     .appt-form { padding: 1.2rem; }
     .appt-contact-cards { flex-direction: column; }
+    /* Neutralise Bootstrap g-5 negative row margins on mobile to stop horizontal overflow */
+    .appointment-section .row { --bs-gutter-x: 1.5rem; }
+}
+
+/* ── Prevent swiper section horizontal overflow ── */
+.process-section, .section-padding {
+    overflow-x: hidden;
 }
 
 .speciality-section {
