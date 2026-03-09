@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         exit;
     }
     if ($earlyAction === 'quick_toggle_section') {
-        $allowedKeys = ['hero_slider','info_strip','about_section','departments','doctors','our_videos','cta_checkup','appointment','process','stats','testimonials','blog','location','cta_ready'];
+        $allowedKeys = ['hero_slider','info_strip','about_section','why_choose_us','departments','doctors','our_videos','cta_checkup','appointment','process','stats','testimonials','blog','location','cta_ready'];
         $sKey = trim($_POST['section_key'] ?? '');
         if ($sKey && in_array($sKey, $allowedKeys, true)) {
             $vis = getHomeSection($pdo, 'section_visibility') ?: [];
@@ -39,6 +39,17 @@ requirePermission('home_sections');
 $success = $error = '';
 $infoStrip = getHomeSection($pdo, 'info_strip');
 $aboutSection = getHomeSection($pdo, 'about_section');
+$wcuSection   = getHomeSection($pdo, 'why_choose_us') ?: [
+    'label'=>'WHY CHOOSE US','title'=>'Why Choose Us For Your Health Care Needs',
+    'experience_number'=>'18+','experience_label'=>'YEARS','photo1'=>'','photo2'=>'',
+    'float_icon'=>'fas fa-chart-bar',
+    'features'=>[
+        ['icon'=>'fas fa-trophy','title'=>'More Experience','description'=>'We offer a range of health services to meet all your needs.'],
+        ['icon'=>'fas fa-hands-helping','title'=>'Seamless Care','description'=>'We offer a range of health services to meet all your needs.'],
+        ['icon'=>'fas fa-shield-alt','title'=>'The Right Answers','description'=>'We offer a range of health services to meet all your needs.'],
+        ['icon'=>'fas fa-star','title'=>'Unparalleled Expertise','description'=>'We offer a range of health services to meet all your needs.'],
+    ]
+];
 $locationSection = getHomeSection($pdo, 'location_section');
 $sectionVisibility = getHomeSection($pdo, 'section_visibility');
 
@@ -72,6 +83,7 @@ $allSections = [
     'hero_slider' => ['label' => 'Hero Slider', 'icon' => 'fa-images', 'color' => '#0D6EFD'],
     'info_strip' => ['label' => 'Info Strip', 'icon' => 'fa-columns', 'color' => '#6f42c1'],
     'about_section' => ['label' => 'About Us', 'icon' => 'fa-info-circle', 'color' => '#20C997'],
+    'why_choose_us' => ['label' => 'Why Choose Us', 'icon' => 'fa-shield-alt', 'color' => '#0b1f4f'],
     'departments' => ['label' => 'Departments', 'icon' => 'fa-hospital', 'color' => '#0dcaf0'],
     'doctors' => ['label' => 'Doctors', 'icon' => 'fa-user-md', 'color' => '#198754'],
     'our_videos' => ['label' => 'Our Videos', 'icon' => 'fa-play-circle', 'color' => '#ff0000'],
@@ -254,6 +266,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
             $success = $success ?: 'About section updated successfully!';
         } else {
             $error = 'Failed to update about section.';
+        }
+    }
+
+    if ($action === 'save_wcu') {
+        $uploadDir = __DIR__ . '/../assets/uploads/sections/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        $allowed     = ['jpg','jpeg','png','gif','webp'];
+        $allowedMime = ['image/jpeg','image/png','image/gif','image/webp'];
+        foreach (['wcu_photo1' => 'photo1', 'wcu_photo2' => 'photo2'] as $fileKey => $dataKey) {
+            if (!empty($_FILES[$fileKey]['name'])) {
+                $ext  = strtolower(pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION));
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime  = finfo_file($finfo, $_FILES[$fileKey]['tmp_name']);
+                finfo_close($finfo);
+                if (in_array($ext, $allowed) && in_array($mime, $allowedMime)) {
+                    $fname = uniqid('wcu_') . '.' . $ext;
+                    if (move_uploaded_file($_FILES[$fileKey]['tmp_name'], $uploadDir . $fname)) {
+                        $wcuSection[$dataKey] = '/assets/uploads/sections/' . $fname;
+                    }
+                } else {
+                    $error = 'Invalid image. Allowed: jpg, png, gif, webp.';
+                }
+            }
+        }
+        $wcuSection['label']             = trim($_POST['wcu_label'] ?? 'WHY CHOOSE US');
+        $wcuSection['title']             = trim($_POST['wcu_title'] ?? '');
+        $wcuSection['experience_number'] = trim($_POST['wcu_exp_num'] ?? '18+');
+        $wcuSection['experience_label']  = trim($_POST['wcu_exp_label'] ?? 'YEARS');
+        $wcuSection['float_icon']        = trim($_POST['wcu_float_icon'] ?? 'fas fa-chart-bar');
+        $feats = [];
+        $fIcons = $_POST['wcu_feat_icon']  ?? [];
+        $fTitles= $_POST['wcu_feat_title'] ?? [];
+        $fDescs = $_POST['wcu_feat_desc']  ?? [];
+        for ($i = 0; $i < 4; $i++) {
+            $feats[] = [
+                'icon'        => trim($fIcons[$i]  ?? 'fas fa-star'),
+                'title'       => trim($fTitles[$i] ?? ''),
+                'description' => trim($fDescs[$i]  ?? ''),
+            ];
+        }
+        $wcuSection['features'] = $feats;
+        if (saveHomeSection($pdo, 'why_choose_us', $wcuSection)) {
+            $success = 'Why Choose Us section updated!';
+        } else {
+            $error = 'Failed to update Why Choose Us section.';
         }
     }
 
@@ -513,6 +570,7 @@ if (isset($_GET['msg'])) {
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#heroSlidesTab" type="button"><i class="fas fa-images me-1"></i> Hero Slides</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#infoStripTab" type="button"><i class="fas fa-columns me-1"></i> Info Strip</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aboutTab" type="button"><i class="fas fa-info-circle me-1"></i> About</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#wcuTab" type="button"><i class="fas fa-shield-alt me-1"></i> Why Choose Us</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#departmentsTab" type="button"><i class="fas fa-hospital me-1"></i> Departments</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#doctorsTab" type="button"><i class="fas fa-user-md me-1"></i> Doctors</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ctaCheckupTab" type="button"><i class="fas fa-stethoscope me-1"></i> CTA Check-up</button></li>
@@ -797,6 +855,98 @@ if (isset($_GET['msg'])) {
 
                         <div class="text-end mt-4">
                             <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save About Section</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="wcuTab">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-shield-alt me-2 text-primary"></i>Why Choose Us Section</h6>
+                    <?= $visToggle('why_choose_us') ?>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" id="wcuForm">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="save_wcu">
+                        <div class="row g-4">
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Label <small class="text-muted">(e.g. WHY CHOOSE US)</small></label>
+                                <input type="text" name="wcu_label" class="form-control" value="<?= e($wcuSection['label'] ?? 'WHY CHOOSE US') ?>">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Floating Card Icon <small class="text-muted">(FA class)</small></label>
+                                <input type="text" name="wcu_float_icon" class="form-control" value="<?= e($wcuSection['float_icon'] ?? 'fas fa-chart-bar') ?>" placeholder="fas fa-chart-bar">
+                                <div class="form-text">Preview: <i class="<?= e($wcuSection['float_icon'] ?? 'fas fa-chart-bar') ?> text-primary"></i></div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Section Heading</label>
+                                <input type="text" name="wcu_title" class="form-control" value="<?= e($wcuSection['title'] ?? '') ?>">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Experience Number <small class="text-muted">(e.g. 18+)</small></label>
+                                <input type="text" name="wcu_exp_num" class="form-control" value="<?= e($wcuSection['experience_number'] ?? '18+') ?>">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Experience Label <small class="text-muted">(e.g. YEARS)</small></label>
+                                <input type="text" name="wcu_exp_label" class="form-control" value="<?= e($wcuSection['experience_label'] ?? 'YEARS') ?>">
+                            </div>
+
+                            <div class="col-12"><hr class="my-1"><h6 class="mb-0 text-muted small text-uppercase fw-bold">Section Photos</h6></div>
+
+                            <?php foreach ([['wcu_photo1','photo1','Main Photo (large, left side)'],['wcu_photo2','photo2','Secondary Photo (smaller, bottom-right overlap)']] as [$fk,$dk,$lbl]): ?>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold"><?= $lbl ?></label>
+                                <?php if (!empty($wcuSection[$dk])): ?>
+                                <div class="mb-2">
+                                    <img src="<?= e($wcuSection[$dk]) ?>" style="max-height:120px;border-radius:8px;border:1px solid #dee2e6;" alt="Current">
+                                    <div class="text-muted" style="font-size:0.75rem;">Current photo</div>
+                                </div>
+                                <?php endif; ?>
+                                <input type="file" name="<?= $fk ?>" class="form-control" accept="image/*">
+                                <div class="form-text">Leave empty to keep existing. Allowed: jpg, png, webp, gif.</div>
+                            </div>
+                            <?php endforeach; ?>
+
+                            <div class="col-12"><hr class="my-1"><h6 class="mb-0 text-muted small text-uppercase fw-bold">Feature Cards (4)</h6></div>
+
+                            <?php
+                            $defaultFeatures = [
+                                ['icon'=>'fas fa-trophy','title'=>'More Experience','description'=>'We offer a range of health services to meet all your needs.'],
+                                ['icon'=>'fas fa-hands-helping','title'=>'Seamless Care','description'=>'We offer a range of health services to meet all your needs.'],
+                                ['icon'=>'fas fa-shield-alt','title'=>'The Right Answers','description'=>'We offer a range of health services to meet all your needs.'],
+                                ['icon'=>'fas fa-star','title'=>'Unparalleled Expertise','description'=>'We offer a range of health services to meet all your needs.'],
+                            ];
+                            $editFeats = array_values(array_slice(array_pad($wcuSection['features'] ?? [], 4, []), 0, 4));
+                            for ($fi = 0; $fi < 4; $fi++):
+                                $ef = $editFeats[$fi] + ($defaultFeatures[$fi] ?? []);
+                            ?>
+                            <div class="col-md-6">
+                                <div class="card border rounded-3 p-3 h-100">
+                                    <div class="fw-semibold small mb-2 text-primary">Card <?= str_pad($fi+1,2,'0',STR_PAD_LEFT) ?></div>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">Icon <small class="text-muted">(FA class)</small></label>
+                                        <input type="text" name="wcu_feat_icon[]" class="form-control form-control-sm" value="<?= e($ef['icon'] ?? 'fas fa-star') ?>" placeholder="fas fa-star">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">Title</label>
+                                        <input type="text" name="wcu_feat_title[]" class="form-control form-control-sm" value="<?= e($ef['title'] ?? '') ?>">
+                                    </div>
+                                    <div>
+                                        <label class="form-label small fw-semibold">Description</label>
+                                        <textarea name="wcu_feat_desc[]" class="form-control form-control-sm" rows="2"><?= e($ef['description'] ?? '') ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endfor; ?>
+
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save Why Choose Us Section</button>
                         </div>
                     </form>
                 </div>
