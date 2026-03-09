@@ -17,6 +17,7 @@ ALTER TABLE `doctors` ADD COLUMN IF NOT EXISTS `rating`             DECIMAL(3,1)
 ALTER TABLE `doctors` ADD COLUMN IF NOT EXISTS `reviews_count`      INT          DEFAULT 0         AFTER `rating`;
 ALTER TABLE `doctors` ADD COLUMN IF NOT EXISTS `patients_treated`   INT          DEFAULT 0         AFTER `reviews_count`;
 ALTER TABLE `doctors` ADD COLUMN IF NOT EXISTS `success_rate`       INT          DEFAULT 98        AFTER `patients_treated`;
+ALTER TABLE `doctors` ADD COLUMN IF NOT EXISTS `profile_template`   TINYINT      DEFAULT 1         AFTER `success_rate`;
 
 -- doctor_reviews table
 CREATE TABLE IF NOT EXISTS `doctor_reviews` (
