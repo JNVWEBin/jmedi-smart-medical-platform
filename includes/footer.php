@@ -67,10 +67,16 @@ $floatDoctors = getDoctors($pdo);
 ?>
 
 <?php
-$waHref  = $whatsappNum ? 'https://wa.me/' . e($whatsappNum) : '/public/contact.php';
+$waMsgTemplate = $settings['whatsapp_message'] ?? '';
+if (empty($waMsgTemplate)) {
+    $waMsgTemplate = "Hi {site_name}! 👋\n\nI visited your website and I am interested in your healthcare services. Could you please provide me with more information?\n\nThank you!";
+}
+$waMsg  = str_replace('{site_name}', ($settings['site_name'] ?? 'JMedi'), $waMsgTemplate);
+$waText = urlencode($waMsg);
+$waBase = $whatsappNum ? 'https://wa.me/' . rawurlencode($whatsappNum) . '?text=' . $waText : '/public/contact.php';
 $waTarget = $whatsappNum ? 'target="_blank"' : '';
 ?>
-<a href="<?= $waHref ?>" <?= $waTarget ?> class="whatsapp-float" title="<?= $whatsappNum ? 'Chat on WhatsApp' : 'Contact Us' ?>">
+<a href="<?= $waBase ?>" <?= $waTarget ?> class="whatsapp-float" title="<?= $whatsappNum ? 'Chat on WhatsApp' : 'Contact Us' ?>">
     <i class="fab fa-whatsapp"></i>
 </a>
 
@@ -86,7 +92,7 @@ $waTarget = $whatsappNum ? 'target="_blank"' : '';
         <span>Book Appointment</span>
     </button>
     <?php if ($whatsappNum): ?>
-    <a href="https://wa.me/<?= e($whatsappNum) ?>" target="_blank" class="mob-cta-wa">
+    <a href="<?= $waBase ?>" target="_blank" class="mob-cta-wa">
         <i class="fab fa-whatsapp"></i>
         <span>WhatsApp Us</span>
     </a>
