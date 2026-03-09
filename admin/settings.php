@@ -224,6 +224,36 @@ $tab = $_GET['tab'] ?? 'general';
 
         <!-- ═══════════════════════════ LOGOS ═══════════════════════════ -->
         <?php elseif ($tab === 'logos'): ?>
+        <?php
+        /* ── Upload pre-flight diagnostics ── */
+        $logosDir   = __DIR__ . '/../assets/logos/';
+        $dirExists  = is_dir($logosDir);
+        $dirWrite   = $dirExists && is_writable($logosDir);
+        $phpUpload  = ini_get('upload_max_filesize');
+        $phpPost    = ini_get('post_max_size');
+        $phpHandler = php_sapi_name();
+        if (!$dirExists) @mkdir($logosDir, 0755, true);
+        if ($dirExists && !$dirWrite) @chmod($logosDir, 0755);
+        $dirWriteAfter = is_dir($logosDir) && is_writable($logosDir);
+        $diagOk = $dirWriteAfter;
+        ?>
+        <?php if (!$diagOk): ?>
+        <div class="alert alert-danger mb-3" style="border-radius:10px;border:none;">
+            <strong><i class="fas fa-exclamation-triangle me-2"></i>Upload directory not writable</strong>
+            <ul class="mb-1 mt-2 small">
+                <li>Path: <code><?= htmlspecialchars($logosDir) ?></code></li>
+                <li>Directory exists: <?= $dirExists ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>' ?></li>
+                <li>Writable: <span class="text-danger">No</span></li>
+            </ul>
+            <p class="mb-0 small"><strong>Fix on cPanel:</strong> Go to File Manager → <code>assets/logos/</code> → right-click → Permissions → set to <code>755</code> (or <code>775</code>).</p>
+        </div>
+        <?php else: ?>
+        <div class="alert alert-success alert-dismissible fade show mb-3" style="border-radius:10px;border:none;padding:.6rem 1rem;">
+            <i class="fas fa-check-circle me-2"></i>
+            Upload directory is ready &nbsp;|&nbsp; PHP limit: <strong><?= htmlspecialchars($phpUpload) ?></strong> upload / <strong><?= htmlspecialchars($phpPost) ?></strong> post &nbsp;|&nbsp; Handler: <code><?= htmlspecialchars($phpHandler) ?></code>
+            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        </div>
+        <?php endif; ?>
         <div class="dash-card">
             <div class="settings-section-title"><i class="fas fa-image me-1"></i> Logo Management</div>
             <p class="text-muted small mb-3">Accepted: JPG, PNG, GIF, WEBP &nbsp;|&nbsp; Max 5 MB each &nbsp;|&nbsp; Recommended: transparent PNG</p>
