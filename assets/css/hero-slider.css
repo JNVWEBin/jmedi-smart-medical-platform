@@ -377,3 +377,25 @@
     .hero-slider .carousel-control-prev { left: 15px; }
     .hero-slider .carousel-control-next { right: 15px; }
 }
+
+@media (max-width: 575.98px) {
+    .hero-slider .slide-buttons {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+    }
+    .hero-slider .slide-btn {
+        padding: 0.55rem 1rem;
+        font-size: 0.78rem;
+        letter-spacing: 0;
+        margin-right: 0;
+        flex: 1 1 0;
+        min-width: 0;
+        text-align: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+    .hero-slider .slide-btn i {
+        display: none;
+    }
+}
