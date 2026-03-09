@@ -18,6 +18,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         header('Location: /admin/home-sections.php?tab=heroSlidesTab&msg=toggled');
         exit;
     }
+    if ($earlyAction === 'quick_toggle_section') {
+        $allowedKeys = ['hero_slider','info_strip','about_section','departments','doctors','our_videos','cta_checkup','appointment','process','stats','testimonials','blog','location','cta_ready'];
+        $sKey = trim($_POST['section_key'] ?? '');
+        if ($sKey && in_array($sKey, $allowedKeys, true)) {
+            $vis = getHomeSection($pdo, 'section_visibility') ?: [];
+            $vis[$sKey] = !empty($_POST['visible']) ? true : false;
+            saveHomeSection($pdo, 'section_visibility', $vis);
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => true]);
+        exit;
+    }
 }
 
 $pageTitle = 'Home Page Sections';
@@ -29,6 +41,17 @@ $infoStrip = getHomeSection($pdo, 'info_strip');
 $aboutSection = getHomeSection($pdo, 'about_section');
 $locationSection = getHomeSection($pdo, 'location_section');
 $sectionVisibility = getHomeSection($pdo, 'section_visibility');
+
+/* Helper: renders an instant-save visibility toggle for use in each section tab header */
+$visToggle = function(string $key) use (&$sectionVisibility): string {
+    $on  = !empty($sectionVisibility[$key]);
+    $uid = 'qt_' . $key;
+    return '<div class="form-check form-switch ms-2 mb-0 d-flex align-items-center gap-1" title="Toggle section visibility on/off">'
+         . '<input class="form-check-input" type="checkbox" id="' . $uid . '" role="switch"' . ($on ? ' checked' : '') . ' onchange="quickToggleSection(\'' . htmlspecialchars($key, ENT_QUOTES) . '\',this)" style="cursor:pointer;">'
+         . '<label class="form-check-label small text-muted fw-normal" for="' . $uid . '" style="cursor:pointer;white-space:nowrap;">' . ($on ? 'Visible' : 'Hidden') . '</label>'
+         . '</div>';
+};
+
 $ctaCheckup = getHomeSection($pdo, 'cta_checkup');
 $appointmentSection = getHomeSection($pdo, 'appointment_section');
 $processSection = getHomeSection($pdo, 'process_section');
@@ -507,7 +530,10 @@ if (isset($_GET['msg'])) {
         <div class="tab-pane fade show active" id="heroSlidesTab">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0"><i class="fas fa-images me-2 text-primary"></i>Hero Slides (<?= count($allSlides) ?>)</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="mb-0"><i class="fas fa-images me-2 text-primary"></i>Hero Slides (<?= count($allSlides) ?>)</h6>
+                        <?= $visToggle('hero_slider') ?>
+                    </div>
                     <?php if ($heroAction !== 'add' && $heroAction !== 'edit'): ?>
                     <a href="/admin/home-sections.php?action=add&tab=heroSlidesTab" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Slide</a>
                     <?php endif; ?>
@@ -622,7 +648,10 @@ if (isset($_GET['msg'])) {
         <div class="tab-pane fade" id="infoStripTab">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0"><i class="fas fa-columns me-2 text-primary"></i>Info Strip Items</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="mb-0"><i class="fas fa-columns me-2 text-primary"></i>Info Strip Items</h6>
+                        <?= $visToggle('info_strip') ?>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addStripItem()"><i class="fas fa-plus me-1"></i>Add Item</button>
                 </div>
                 <div class="card-body p-4">
@@ -678,8 +707,9 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="aboutTab">
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>About Section</h6>
+                    <?= $visToggle('about_section') ?>
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" enctype="multipart/form-data" id="aboutForm">
@@ -775,8 +805,9 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="locationTab">
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="fas fa-map-marked-alt me-2 text-primary"></i>Location Section</h6>
+                    <?= $visToggle('location') ?>
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" id="locationForm">
@@ -866,6 +897,10 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="departmentsTab">
             <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-hospital me-2 text-primary"></i>Departments</h6>
+                    <?= $visToggle('departments') ?>
+                </div>
                 <div class="card-body p-5 text-center">
                     <div class="mb-3"><i class="fas fa-hospital" style="font-size:3rem;color:#0dcaf0;opacity:0.4;"></i></div>
                     <h5>Departments</h5>
@@ -877,6 +912,10 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="doctorsTab">
             <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-user-md me-2 text-primary"></i>Doctors</h6>
+                    <?= $visToggle('doctors') ?>
+                </div>
                 <div class="card-body p-5 text-center">
                     <div class="mb-3"><i class="fas fa-user-md" style="font-size:3rem;color:#198754;opacity:0.4;"></i></div>
                     <h5>Doctors</h5>
@@ -888,8 +927,9 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="ctaCheckupTab">
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="fas fa-stethoscope me-2 text-primary"></i>CTA - Need a Check-up</h6>
+                    <?= $visToggle('cta_checkup') ?>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted small mb-3">The call-to-action banner that appears between Doctors and Appointment sections.</p>
@@ -924,8 +964,9 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="appointmentTab">
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="fas fa-calendar-check me-2 text-primary"></i>Appointment Section</h6>
+                    <?= $visToggle('appointment') ?>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted small mb-3">The left-side content of the appointment booking section. The form itself is auto-generated.</p>
@@ -957,7 +998,10 @@ if (isset($_GET['msg'])) {
         <div class="tab-pane fade" id="processTab">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0"><i class="fas fa-cogs me-2 text-primary"></i>Working Process Steps</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="mb-0"><i class="fas fa-cogs me-2 text-primary"></i>Working Process Steps</h6>
+                        <?= $visToggle('process') ?>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addProcessStep()"><i class="fas fa-plus me-1"></i>Add Step</button>
                 </div>
                 <div class="card-body p-4">
@@ -1012,7 +1056,10 @@ if (isset($_GET['msg'])) {
         <div class="tab-pane fade" id="statsTab">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Statistics Counters</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Statistics Counters</h6>
+                        <?= $visToggle('stats') ?>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addStatItem()"><i class="fas fa-plus me-1"></i>Add Item</button>
                 </div>
                 <div class="card-body p-4">
@@ -1061,6 +1108,10 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="testimonialsTab">
             <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-comments me-2 text-primary"></i>Testimonials</h6>
+                    <?= $visToggle('testimonials') ?>
+                </div>
                 <div class="card-body p-5 text-center">
                     <div class="mb-3"><i class="fas fa-comments" style="font-size:3rem;color:#ffc107;opacity:0.4;"></i></div>
                     <h5>Testimonials</h5>
@@ -1072,6 +1123,10 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="blogTab">
             <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-newspaper me-2 text-primary"></i>Latest News / Blog</h6>
+                    <?= $visToggle('blog') ?>
+                </div>
                 <div class="card-body p-5 text-center">
                     <div class="mb-3"><i class="fas fa-newspaper" style="font-size:3rem;color:#20c997;opacity:0.4;"></i></div>
                     <h5>Latest News / Blog</h5>
@@ -1083,8 +1138,9 @@ if (isset($_GET['msg'])) {
 
         <div class="tab-pane fade" id="ctaReadyTab">
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="fas fa-rocket me-2 text-primary"></i>CTA - Ready to Get Started</h6>
+                    <?= $visToggle('cta_ready') ?>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted small mb-3">The green call-to-action banner at the bottom of the homepage.</p>
@@ -1128,8 +1184,9 @@ if (isset($_GET['msg'])) {
         <!-- ═══════════════════ OUR VIDEOS TAB ═══════════════════ -->
         <div class="tab-pane fade" id="videosTab">
             <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="fab fa-youtube me-2" style="color:#ff0000;"></i>Our Latest Videos — Section Settings</h6>
+                    <?= $visToggle('our_videos') ?>
                 </div>
                 <div class="card-body p-4">
                     <form method="POST">
@@ -1314,6 +1371,38 @@ function toggleVisCard(card) {
     cb.checked = !cb.checked;
     card.classList.toggle('active', cb.checked);
     card.querySelector('.form-check-label').textContent = cb.checked ? 'Visible' : 'Hidden';
+}
+
+async function quickToggleSection(key, checkbox) {
+    const label = checkbox.nextElementSibling;
+    const fd = new FormData();
+    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    if (csrfInput) fd.append('csrf_token', csrfInput.value);
+    fd.append('action', 'quick_toggle_section');
+    fd.append('section_key', key);
+    if (checkbox.checked) fd.append('visible', '1');
+    try {
+        const res = await fetch('/admin/home-sections.php', { method: 'POST', body: fd });
+        if (res.ok) {
+            if (label) label.textContent = checkbox.checked ? 'Visible' : 'Hidden';
+            const topCard = document.querySelector('.visibility-card input#vis_' + key);
+            if (topCard) {
+                topCard.checked = checkbox.checked;
+                topCard.closest('.visibility-card').classList.toggle('active', checkbox.checked);
+                topCard.nextElementSibling.textContent = checkbox.checked ? 'Visible' : 'Hidden';
+            }
+            const badge = document.querySelector('.card-header .badge.bg-primary');
+            if (badge) {
+                const total = document.querySelectorAll('.visibility-card input[type="checkbox"]').length;
+                const active = document.querySelectorAll('.visibility-card input[type="checkbox"]:checked').length;
+                badge.textContent = active + ' / ' + total + ' Active';
+            }
+        } else {
+            checkbox.checked = !checkbox.checked;
+        }
+    } catch (e) {
+        checkbox.checked = !checkbox.checked;
+    }
 }
 
 function addProcessStep() {
