@@ -12,13 +12,13 @@
 }
 
 html {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-body);
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6 {
