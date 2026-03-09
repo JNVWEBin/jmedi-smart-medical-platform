@@ -81,6 +81,48 @@ function getDoctor(PDO $pdo, int $id): ?array {
     return $stmt->fetch() ?: null;
 }
 
+function getDoctorBySlug(PDO $pdo, string $slug): ?array {
+    $stmt = $pdo->prepare("SELECT d.*, dep.name as department_name FROM doctors d LEFT JOIN departments dep ON d.department_id = dep.department_id WHERE d.slug = :slug AND d.status = 1");
+    $stmt->execute([':slug' => $slug]);
+    return $stmt->fetch() ?: null;
+}
+
+function getDoctorReviews(PDO $pdo, int $doctorId, int $limit = 10): array {
+    $stmt = $pdo->prepare("SELECT * FROM doctor_reviews WHERE doctor_id = :id ORDER BY created_at DESC LIMIT :lim");
+    $stmt->bindValue(':id', $doctorId, PDO::PARAM_INT);
+    $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function getRelatedDoctors(PDO $pdo, int $departmentId, int $excludeId, int $limit = 4): array {
+    $stmt = $pdo->prepare("SELECT d.*, dep.name as department_name FROM doctors d LEFT JOIN departments dep ON d.department_id = dep.department_id WHERE d.department_id = :dept AND d.doctor_id != :exclude AND d.status = 1 ORDER BY d.sort_order, d.name LIMIT :lim");
+    $stmt->bindValue(':dept', $departmentId, PDO::PARAM_INT);
+    $stmt->bindValue(':exclude', $excludeId, PDO::PARAM_INT);
+    $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function generateDoctorSlug(PDO $pdo, string $name, ?int $excludeId = null): string {
+    $base = 'dr-' . slugify($name);
+    $slug = $base;
+    $i = 2;
+    while (true) {
+        $sql = "SELECT doctor_id FROM doctors WHERE slug = :slug";
+        $params = [':slug' => $slug];
+        if ($excludeId) {
+            $sql .= " AND doctor_id != :exclude";
+            $params[':exclude'] = $excludeId;
+        }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        if (!$stmt->fetch()) break;
+        $slug = $base . '-' . $i++;
+    }
+    return $slug;
+}
+
 function getAppointments(PDO $pdo, ?string $status = null, ?string $search = null, ?int $doctorId = null): array {
     $sql = "SELECT a.*, d.name as doctor_name, dep.name as department_name FROM appointments a LEFT JOIN doctors d ON a.doctor_id = d.doctor_id LEFT JOIN departments dep ON a.department_id = dep.department_id";
     $conditions = [];
