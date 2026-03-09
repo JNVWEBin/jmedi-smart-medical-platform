@@ -327,70 +327,125 @@ $apptHeading = $appointmentData['heading'] ?? "Book Your\nAppointment";
 $apptDesc = $appointmentData['description'] ?? 'Schedule your visit with our specialists. Fill out the form and we\'ll confirm your appointment within 24 hours.';
 ?>
 <section class="appointment-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-5 mb-4 mb-lg-0 fade-in-left">
-                <span class="hero-badge"><i class="fas fa-calendar-alt me-1"></i> <?= e($apptBadge) ?></span>
-                <h2 class="fw-bold mb-3" style="color:white;font-size:2.2rem;"><?= nl2br(e($apptHeading)) ?></h2>
-                <p class="opacity-75 mb-4" style="line-height:1.8;"><?= e($apptDesc) ?></p>
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
-                        <i class="fas fa-phone-alt fs-5"></i>
-                    </div>
-                    <div>
-                        <small class="d-block opacity-75">Call us directly</small>
-                        <span class="fs-5 fw-bold"><?= e($settings['phone'] ?? '') ?></span>
-                    </div>
+    <div class="appt-bg-shapes">
+        <span class="appt-shape appt-shape-1"></span>
+        <span class="appt-shape appt-shape-2"></span>
+        <span class="appt-shape appt-shape-3"></span>
+        <span class="appt-dots"></span>
+    </div>
+    <div class="container position-relative">
+        <div class="row align-items-center g-5">
+
+            <div class="col-lg-5 appt-info fade-in-left">
+                <div class="appt-badge-pill mb-3">
+                    <i class="fas fa-calendar-alt me-2"></i><?= e($apptBadge) ?>
                 </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
-                        <i class="fas fa-clock fs-5"></i>
+                <h2 class="appt-heading"><?= nl2br(e($apptHeading)) ?></h2>
+                <p class="appt-desc"><?= e($apptDesc) ?></p>
+
+                <ul class="appt-checklist">
+                    <li><i class="fas fa-check-circle"></i> Confirmed within 24 hours</li>
+                    <li><i class="fas fa-check-circle"></i> Board-certified specialists</li>
+                    <li><i class="fas fa-check-circle"></i> Flexible scheduling options</li>
+                </ul>
+
+                <div class="appt-contact-cards">
+                    <div class="appt-contact-card">
+                        <div class="appt-contact-icon">
+                            <i class="fas fa-phone-alt"></i>
+                            <span class="appt-pulse-ring"></span>
+                        </div>
+                        <div>
+                            <small>Call us directly</small>
+                            <strong><?= e($settings['phone'] ?? '+1 (800) 123-4567') ?></strong>
+                        </div>
                     </div>
-                    <div>
-                        <small class="d-block opacity-75">Working Hours</small>
-                        <span class="fw-bold">Mon-Sat: 8:00 AM - 7:00 PM</span>
+                    <div class="appt-contact-card">
+                        <div class="appt-contact-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <small>Working Hours</small>
+                            <strong><?= e($settings['working_hours'] ?? 'Mon–Sat: 8:00 AM – 7:00 PM') ?></strong>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-lg-7 fade-in-right">
-                <form action="/public/appointment.php" method="POST" class="needs-validation" novalidate>
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generateCSRFToken()) ?>">
-                    <input type="hidden" name="book_appointment" value="1">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <input type="text" name="patient_name" class="form-control" placeholder="Your Name" required>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="email" name="email" class="form-control" placeholder="Email Address" required>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="tel" name="phone" class="form-control" placeholder="Phone Number" required>
-                        </div>
-                        <div class="col-md-6">
-                            <select name="department_id" class="form-select" required>
-                                <option value="">Select Department</option>
-                                <?php foreach ($departments as $dept): ?>
-                                <option value="<?= $dept['department_id'] ?>"><?= e($dept['name']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="date" name="appointment_date" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="time" name="appointment_time" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <textarea name="message" class="form-control" rows="3" placeholder="Your Message (optional)"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn-appointment">
-                                <i class="fas fa-paper-plane me-2"></i>Submit Appointment
-                            </button>
+                <div class="appt-form-card">
+                    <div class="appt-form-header">
+                        <div class="appt-form-header-icon"><i class="fas fa-notes-medical"></i></div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Request an Appointment</h5>
+                            <small class="opacity-75">Fill in the details and we'll confirm shortly</small>
                         </div>
                     </div>
-                </form>
+                    <form action="/public/appointment.php" method="POST" class="needs-validation appt-form" novalidate>
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generateCSRFToken()) ?>">
+                        <input type="hidden" name="book_appointment" value="1">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="appt-input-wrap">
+                                    <i class="fas fa-user appt-input-icon"></i>
+                                    <input type="text" name="patient_name" class="form-control" placeholder="Full Name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="appt-input-wrap">
+                                    <i class="fas fa-envelope appt-input-icon"></i>
+                                    <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="appt-input-wrap">
+                                    <i class="fas fa-phone appt-input-icon"></i>
+                                    <input type="tel" name="phone" class="form-control" placeholder="Phone Number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="appt-input-wrap">
+                                    <i class="fas fa-hospital appt-input-icon"></i>
+                                    <select name="department_id" class="form-select" required>
+                                        <option value="">Select Department</option>
+                                        <?php foreach ($departments as $dept): ?>
+                                        <option value="<?= $dept['department_id'] ?>"><?= e($dept['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="appt-input-wrap">
+                                    <i class="fas fa-calendar appt-input-icon"></i>
+                                    <input type="date" name="appointment_date" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="appt-input-wrap">
+                                    <i class="fas fa-clock appt-input-icon"></i>
+                                    <input type="time" name="appointment_time" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="appt-input-wrap">
+                                    <i class="fas fa-comment-medical appt-input-icon appt-input-icon--ta"></i>
+                                    <textarea name="message" class="form-control" rows="3" placeholder="Additional Notes (optional)"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-appointment">
+                                    <span class="btn-appt-inner">
+                                        <i class="fas fa-paper-plane"></i>
+                                        <span>Submit Appointment</span>
+                                    </span>
+                                    <span class="btn-appt-shine"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
+
         </div>
     </div>
 </section>
