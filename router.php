@@ -36,6 +36,13 @@ if (file_exists($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'php')
     return;
 }
 
+// Doctor profile: /doctor/{slug}
+if (preg_match('#^/doctor/([a-z0-9\-]+)$#i', $uri, $m)) {
+    $_GET['slug'] = $m[1];
+    require __DIR__ . '/public/doctor-profile.php';
+    return;
+}
+
 // Clean URL routing: /doctors → public/doctors.php, /blog → public/blog.php, etc.
 $segment = ltrim($uri, '/');
 if (!str_contains($segment, '/')) {
