@@ -13,20 +13,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const testimonialSwiper = document.querySelector('.testimonial-swiper');
     if (testimonialSwiper) {
         new Swiper('.testimonial-swiper', {
-            slidesPerView: 1,
-            spaceBetween: 30,
+            slidesPerView: 1.1,
+            spaceBetween: 16,
             loop: true,
-            autoplay: {
-                delay: 5000,
-                disableOnInteraction: false,
-            },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
+            autoplay: { delay: 5000, disableOnInteraction: false },
+            pagination: { el: '.swiper-pagination', clickable: true },
             breakpoints: {
-                768: { slidesPerView: 2 },
-                1024: { slidesPerView: 3 }
+                576: { slidesPerView: 1.2, spaceBetween: 20 },
+                768: { slidesPerView: 2, spaceBetween: 24 },
+                1024: { slidesPerView: 3, spaceBetween: 30 }
             }
         });
     }
@@ -43,6 +38,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 992: { slidesPerView: 3 }
             }
         });
+    }
+
+    /* ── Mobile-only section swipers ── */
+    const mobSwiperConfig = (paginationEl, cols3 = false) => ({
+        slidesPerView: 1.15,
+        spaceBetween: 16,
+        loop: false,
+        centeredSlides: false,
+        pagination: { el: paginationEl, clickable: true },
+        breakpoints: {
+            576: { slidesPerView: 1.6, spaceBetween: 18 },
+            768: { slidesPerView: cols3 ? 2 : 2, spaceBetween: 20 },
+            992: { slidesPerView: cols3 ? 3 : 4, spaceBetween: 24 }
+        }
+    });
+
+    if (document.querySelector('.dept-swiper')) {
+        new Swiper('.dept-swiper', mobSwiperConfig('.dept-pagination', true));
+    }
+    if (document.querySelector('.team-swiper')) {
+        new Swiper('.team-swiper', mobSwiperConfig('.team-pagination', false));
+    }
+    if (document.querySelector('.process-swiper')) {
+        new Swiper('.process-swiper', mobSwiperConfig('.process-pagination', false));
+    }
+    if (document.querySelector('.articles-swiper')) {
+        new Swiper('.articles-swiper', mobSwiperConfig('.articles-pagination', true));
     }
 
     const deptFilter = document.getElementById('deptFilter');
