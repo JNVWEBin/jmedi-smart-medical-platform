@@ -28,6 +28,7 @@ $schedules = [];
 try { $schedules = getDoctorSchedulesByDay($pdo, $doctor['doctor_id']); } catch (\Throwable $e) {}
 
 $dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+$template = (int)($doctor['profile_template'] ?? 1);
 $services = $doctor['services'] ? array_map('trim', explode(',', $doctor['services'])) : [];
 $certifications = $doctor['certifications'] ? array_map('trim', explode(',', $doctor['certifications'])) : [];
 $languages = $doctor['languages'] ? array_map('trim', explode(',', $doctor['languages'] ?? 'English')) : ['English'];
@@ -38,6 +39,8 @@ $emptyStars = 5 - $fullStars - ($halfStar ? 1 : 0);
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
+
+<?php if ($template === 1): /* ===== TEMPLATE 1: Classic Blue Hero ===== */ ?>
 
 <div class="page-header">
     <div class="container">
@@ -122,6 +125,133 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </section>
+
+<?php else: /* ===== TEMPLATE 2: Modern Light Hero ===== */ ?>
+
+<section class="t2-hero">
+    <div class="container">
+        <div class="t2-hero-grid">
+
+            <div class="t2-hero-content">
+                <nav aria-label="breadcrumb" class="t2-breadcrumb mb-3">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/public/doctors.php">Doctors</a></li>
+                        <li class="breadcrumb-item active"><?= e($doctor['name']) ?></li>
+                    </ol>
+                </nav>
+
+                <div class="t2-rating-row mb-3">
+                    <div class="t2-mini-avatars">
+                        <div class="t2-ma" style="background:#0D6EFD">J</div>
+                        <div class="t2-ma" style="background:#0891b2">M</div>
+                        <div class="t2-ma" style="background:#06b6d4">S</div>
+                        <div class="t2-ma" style="background:#0284c7">R</div>
+                    </div>
+                    <div class="t2-rating-info">
+                        <div class="t2-stars-row">
+                            <?php for ($i = 0; $i < $fullStars; $i++): ?><i class="fas fa-star"></i><?php endfor; ?>
+                            <?php if ($halfStar): ?><i class="fas fa-star-half-alt"></i><?php endif; ?>
+                            <?php for ($i = 0; $i < $emptyStars; $i++): ?><i class="far fa-star"></i><?php endfor; ?>
+                            <strong class="ms-1"><?= number_format($rating, 1) ?></strong>
+                        </div>
+                        <small>Based on <?= number_format((int)($doctor['reviews_count'] ?? 0)) ?>+ Reviews</small>
+                    </div>
+                </div>
+
+                <h1 class="t2-headline">
+                    Get the Care<br>— You Need &amp;<br><span class="t2-hl-accent">Faster.</span>
+                </h1>
+
+                <p class="t2-doctor-name-sub">
+                    <span class="t2-name-tag"><?= e($doctor['name']) ?></span>
+                    <?php if ($doctor['department_name']): ?>
+                    <span class="t2-dept-tag"><i class="fas fa-hospital me-1"></i><?= e($doctor['department_name']) ?></span>
+                    <?php endif; ?>
+                    <?php if (in_array($doctor['consultation_types'] ?? '', ['both', 'online']) || ($doctor['video_consultation'] ?? 0)): ?>
+                    <span class="t2-online-tag"><i class="fas fa-video me-1"></i>Online Available</span>
+                    <?php endif; ?>
+                </p>
+
+                <p class="t2-bio-text"><?= e(mb_strimwidth($doctor['bio'] ?? 'Our team of experienced medical professionals delivers advanced patient-centered care tailored to your unique health needs — in a safe, trusted environment.', 0, 160, '...')) ?></p>
+
+                <div class="t2-cta-row mb-4">
+                    <a href="/public/appointment.php?doctor=<?= $doctor['doctor_id'] ?>" class="btn t2-btn-book">
+                        <i class="fas fa-calendar-check me-2"></i>Book Appointment
+                    </a>
+                    <?php if (in_array($doctor['consultation_types'] ?? '', ['both', 'online']) || ($doctor['video_consultation'] ?? 0)): ?>
+                    <a href="/public/appointment.php?doctor=<?= $doctor['doctor_id'] ?>&type=video" class="btn t2-btn-video">
+                        <i class="fas fa-video me-2"></i>Video Consult
+                    </a>
+                    <?php endif; ?>
+                    <button class="btn t2-btn-share-sm" onclick="shareProfile()" title="Share"><i class="fas fa-share-alt"></i></button>
+                </div>
+
+                <div class="t2-patient-widget">
+                    <div class="t2-pw-avatars">
+                        <div class="t2-pwa" style="background:#3b82f6">A</div>
+                        <div class="t2-pwa" style="background:#0891b2">N</div>
+                        <div class="t2-pwa" style="background:#7c3aed">P</div>
+                    </div>
+                    <div class="t2-pw-text">
+                        <strong><?= $doctor['patients_treated'] ? number_format($doctor['patients_treated']) . '+' : '10K+' ?></strong>
+                        <small>Current Satisfied Patients<br>Around the State</small>
+                    </div>
+                    <a href="/public/appointment.php?doctor=<?= $doctor['doctor_id'] ?>" class="t2-pw-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="t2-hero-photo-wrap">
+                <div class="t2-spinning-badge">
+                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <path id="t2-cp" d="M 60,60 m -42,0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0" fill="none"/>
+                        <text font-size="10" fill="#1e293b" font-weight="600" letter-spacing="2">
+                            <textPath href="#t2-cp">Best Medical &amp; Health Services • World Wide •</textPath>
+                        </text>
+                    </svg>
+                    <div class="t2-badge-center"><i class="fas fa-briefcase-medical"></i></div>
+                </div>
+
+                <?php if ($doctor['photo']): ?>
+                <img src="<?= e($doctor['photo']) ?>" alt="<?= e($doctor['name']) ?>" class="t2-doc-photo" loading="lazy">
+                <?php else: ?>
+                <div class="t2-doc-photo-ph"><i class="fas fa-user-md"></i></div>
+                <?php endif; ?>
+
+                <div class="t2-float-card t2-fc-left">
+                    <div class="t2-fc-icon t2-fc-blue"><i class="fas fa-briefcase-medical"></i></div>
+                    <div>
+                        <strong><?= e($doctor['experience'] ?? '15 Yrs') ?></strong>
+                        <small>Experience</small>
+                    </div>
+                </div>
+
+                <div class="t2-float-card t2-fc-right">
+                    <div class="t2-fc-icon t2-fc-green"><i class="fas fa-chart-line"></i></div>
+                    <div>
+                        <strong><?= (int)($doctor['success_rate'] ?? 98) ?>%</strong>
+                        <small>Success Rate</small>
+                    </div>
+                </div>
+
+                <div class="t2-fee-chip">
+                    <i class="fas fa-rupee-sign me-1"></i><?= number_format((float)($doctor['consultation_fee'] ?? 500), 0) ?> <small>Consult</small>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="t2-marquee-wrap">
+        <div class="t2-marquee-track">
+            <span>Passionate &bull; Trusted &bull; Experienced &bull; Caring &bull; Reliable &bull; Skilled &bull; Friendly &bull; Supportive &bull; Professional &bull; Dedicated &bull;&nbsp;</span>
+            <span>Passionate &bull; Trusted &bull; Experienced &bull; Caring &bull; Reliable &bull; Skilled &bull; Friendly &bull; Supportive &bull; Professional &bull; Dedicated &bull;&nbsp;</span>
+        </div>
+    </div>
+</section>
+
+<?php endif; /* end template conditional */ ?>
 
 <section class="dp-body py-5">
     <div class="container">
@@ -479,6 +609,84 @@ require_once __DIR__ . '/../includes/header.php';
     .dp-stat { padding: 0.4rem 0.65rem; }
     .dp-schedule-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* ============================================================
+   TEMPLATE 2 — Modern Light Hero
+   ============================================================ */
+.t2-hero { background: linear-gradient(140deg, #e8f4ff 0%, #f0faff 45%, #eaf0ff 100%); position: relative; overflow: clip; padding: 0; }
+.t2-hero-grid { display: grid; grid-template-columns: 1fr 430px; align-items: center; min-height: 530px; gap: 1rem; }
+.t2-hero-content { padding: 2.5rem 0 2rem; }
+.t2-breadcrumb .breadcrumb-item a { color: #64748b; font-size: 0.8rem; text-decoration: none; }
+.t2-breadcrumb .breadcrumb-item a:hover { color: #0D6EFD; }
+.t2-breadcrumb .breadcrumb-item.active { color: #0D6EFD; font-size: 0.8rem; }
+.t2-breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: #94a3b8; }
+.t2-rating-row { display: flex; align-items: center; gap: 0.75rem; }
+.t2-mini-avatars { display: flex; }
+.t2-ma { width: 30px; height: 30px; border-radius: 50%; color: #fff; font-size: 0.68rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-left: -8px; flex-shrink: 0; }
+.t2-ma:first-child { margin-left: 0; }
+.t2-rating-info .t2-stars-row { color: #f59e0b; font-size: 0.82rem; display: flex; align-items: center; }
+.t2-rating-info small { color: #94a3b8; font-size: 0.72rem; display: block; margin-top: 0.1rem; }
+.t2-headline { font-size: clamp(2rem, 3.2vw, 3rem); font-weight: 900; color: #0f172a; line-height: 1.15; margin: 0.5rem 0 0.4rem; letter-spacing: -0.02em; }
+.t2-hl-accent { color: #0D6EFD; }
+.t2-doctor-name-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.75rem; }
+.t2-name-tag { font-weight: 700; color: #0D6EFD; font-size: 0.95rem; }
+.t2-dept-tag { background: #dbeafe; color: #1d4ed8; padding: 0.2rem 0.7rem; border-radius: 50px; font-size: 0.72rem; font-weight: 700; }
+.t2-online-tag { background: #d1fae5; color: #065f46; padding: 0.2rem 0.7rem; border-radius: 50px; font-size: 0.72rem; font-weight: 700; }
+.t2-bio-text { color: #475569; font-size: 0.92rem; line-height: 1.75; max-width: 480px; margin-bottom: 1.4rem; }
+.t2-cta-row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
+.t2-btn-book { background: linear-gradient(135deg, #0D6EFD, #0891b2); color: #fff !important; border: none; border-radius: 50px; padding: 0.7rem 1.6rem; font-weight: 700; font-size: 0.88rem; box-shadow: 0 6px 20px rgba(13,110,253,0.35); transition: all 0.3s; }
+.t2-btn-book:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(13,110,253,0.45); }
+.t2-btn-video { background: #fff; color: #0D6EFD !important; border: 2px solid #0D6EFD; border-radius: 50px; padding: 0.65rem 1.5rem; font-weight: 700; font-size: 0.88rem; transition: all 0.3s; }
+.t2-btn-video:hover { background: #0D6EFD; color: #fff !important; }
+.t2-btn-share-sm { background: #f1f5f9; color: #64748b; border: none; border-radius: 50%; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.t2-btn-share-sm:hover { background: #e2e8f0; }
+.t2-patient-widget { display: inline-flex; align-items: center; gap: 0.7rem; background: #fff; border-radius: 14px; padding: 0.65rem 1rem; box-shadow: 0 4px 18px rgba(0,0,0,0.09); border: 1px solid #f1f5f9; max-width: 100%; }
+.t2-pw-avatars { display: flex; flex-shrink: 0; }
+.t2-pwa { width: 27px; height: 27px; border-radius: 50%; color: #fff; font-size: 0.62rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-left: -7px; }
+.t2-pwa:first-child { margin-left: 0; }
+.t2-pw-text strong { display: block; font-size: 0.88rem; color: #0f172a; font-weight: 800; line-height: 1.1; }
+.t2-pw-text small { font-size: 0.67rem; color: #64748b; line-height: 1.3; }
+.t2-pw-arrow { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #0D6EFD, #06b6d4); color: #fff; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 0.78rem; flex-shrink: 0; transition: transform 0.2s; }
+.t2-pw-arrow:hover { transform: scale(1.12); }
+.t2-hero-photo-wrap { position: relative; align-self: flex-end; height: 530px; }
+.t2-doc-photo { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 20px 20px 0 0; display: block; }
+.t2-doc-photo-ph { width: 100%; height: 100%; background: linear-gradient(145deg, #dbeafe, #e0f2fe); border-radius: 20px 20px 0 0; display: flex; align-items: center; justify-content: center; font-size: 7rem; color: #0D6EFD; opacity: 0.3; }
+.t2-spinning-badge { position: absolute; top: 22px; right: -22px; width: 104px; height: 104px; z-index: 10; }
+.t2-spinning-badge svg { width: 100%; height: 100%; animation: t2-spin 16s linear infinite; display: block; }
+.t2-badge-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 38px; height: 38px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0D6EFD; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(0,0,0,0.14); }
+@keyframes t2-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.t2-float-card { position: absolute; background: #fff; border-radius: 14px; padding: 0.55rem 0.9rem; box-shadow: 0 8px 26px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 0.6rem; z-index: 10; border: 1px solid #f1f5f9; }
+.t2-float-card strong { display: block; font-size: 0.87rem; font-weight: 800; color: #0f172a; line-height: 1.1; }
+.t2-float-card small { font-size: 0.65rem; color: #94a3b8; }
+.t2-fc-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.88rem; flex-shrink: 0; }
+.t2-fc-blue { background: rgba(13,110,253,0.12); color: #0D6EFD; }
+.t2-fc-green { background: rgba(5,150,105,0.12); color: #059669; }
+.t2-fc-left { bottom: 55px; left: -28px; }
+.t2-fc-right { top: 80px; right: -22px; }
+.t2-fee-chip { position: absolute; bottom: 22px; right: 12px; background: linear-gradient(135deg, #0D6EFD, #0891b2); color: #fff; border-radius: 50px; padding: 0.35rem 0.85rem; font-size: 0.8rem; font-weight: 700; z-index: 10; box-shadow: 0 4px 14px rgba(13,110,253,0.35); }
+.t2-fee-chip small { font-size: 0.68rem; opacity: 0.85; }
+.t2-marquee-wrap { background: linear-gradient(135deg, #0891b2, #06b6d4); overflow: hidden; padding: 0.65rem 0; }
+.t2-marquee-track { display: inline-flex; white-space: nowrap; animation: t2-marquee 24s linear infinite; }
+.t2-marquee-track span { color: #fff; font-weight: 600; font-size: 0.875rem; letter-spacing: 0.05em; white-space: nowrap; }
+@keyframes t2-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (max-width: 991px) {
+    .t2-hero-grid { grid-template-columns: 1fr; min-height: auto; }
+    .t2-hero-content { padding: 2rem 0 1.5rem; }
+    .t2-hero-photo-wrap { height: 360px; border-radius: 16px 16px 0 0; overflow: hidden; margin: 0 -12px; }
+    .t2-spinning-badge { top: 12px; right: 10px; width: 84px; height: 84px; }
+    .t2-fc-left { left: 10px; bottom: 12px; }
+    .t2-fc-right { right: 10px; top: 12px; }
+    .t2-fee-chip { display: none; }
+}
+@media (max-width: 575px) {
+    .t2-headline { font-size: 1.85rem; }
+    .t2-hero-photo-wrap { height: 280px; }
+    .t2-bio-text { font-size: 0.87rem; }
+    .t2-patient-widget { font-size: 0.82rem; }
+}
+/* ============================================================
+   END TEMPLATE 2
+   ============================================================ */
 </style>
 
 <script>
