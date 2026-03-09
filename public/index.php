@@ -10,6 +10,7 @@ $emergencyPhone = $settings['emergency_phone'] ?? '';
 $heroSlides = getHeroSlides($pdo, true);
 $infoStripData = getHomeSection($pdo, 'info_strip');
 $aboutData = getHomeSection($pdo, 'about_section');
+$wcuData   = getHomeSection($pdo, 'why_choose_us');
 $locationData = getHomeSection($pdo, 'location_section');
 $ctaCheckupData = getHomeSection($pdo, 'cta_checkup');
 $appointmentData = getHomeSection($pdo, 'appointment_section');
@@ -214,6 +215,86 @@ $abtBtnLink = $aboutData['button_link'] ?? '/public/departments.php';
                     <i class="fas fa-arrow-right me-2"></i><?= e($abtBtnText) ?>
                 </a>
             </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<?php if ($isVisible('why_choose_us')): ?>
+<?php
+$wcuLabel   = $wcuData['label']             ?? 'WHY CHOOSE US';
+$wcuTitle   = $wcuData['title']             ?? 'Why Choose Us For Your Health Care Needs';
+$wcuExpNum  = $wcuData['experience_number'] ?? '18+';
+$wcuExpLabel= $wcuData['experience_label']  ?? 'YEARS';
+$wcuPhoto1  = $wcuData['photo1']            ?? '';
+$wcuPhoto2  = $wcuData['photo2']            ?? '';
+$wcuFltIcon = $wcuData['float_icon']        ?? 'fas fa-chart-bar';
+$wcuFeats   = $wcuData['features'] ?? [
+    ['icon'=>'fas fa-trophy',        'title'=>'More Experience',      'description'=>'We offer a range of health services to meet all your needs.'],
+    ['icon'=>'fas fa-hands-helping', 'title'=>'Seamless Care',        'description'=>'We offer a range of health services to meet all your needs.'],
+    ['icon'=>'fas fa-shield-alt',    'title'=>'The Right Answers',    'description'=>'We offer a range of health services to meet all your needs.'],
+    ['icon'=>'fas fa-star',          'title'=>'Unparalleled Expertise','description'=>'We offer a range of health services to meet all your needs.'],
+];
+?>
+<section class="wcu-section">
+    <div class="container">
+        <div class="row align-items-center g-4 g-lg-5">
+
+            <div class="col-lg-5">
+                <div class="wcu-photos-wrap fade-in-left">
+                    <?php if ($wcuPhoto1): ?>
+                    <img src="<?= e($wcuPhoto1) ?>" alt="Medical Team" class="wcu-photo-main">
+                    <?php else: ?>
+                    <div class="wcu-photo-main wcu-photo-ph"><i class="fas fa-user-md"></i></div>
+                    <?php endif; ?>
+
+                    <?php if ($wcuPhoto2): ?>
+                    <img src="<?= e($wcuPhoto2) ?>" alt="Medical" class="wcu-photo-secondary">
+                    <?php else: ?>
+                    <div class="wcu-photo-secondary wcu-photo-ph wcu-photo-ph-sm"><i class="fas fa-stethoscope"></i></div>
+                    <?php endif; ?>
+
+                    <div class="wcu-badge">
+                        <svg class="wcu-badge-ring" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+                            <path id="wcu-ring-path" d="M80,80 m-65,0 a65,65 0 1,1 130,0 a65,65 0 1,1 -130,0" fill="none"/>
+                            <text font-size="12.5" fill="#7aa7d5" font-weight="700" letter-spacing="3.5">
+                                <textPath href="#wcu-ring-path">EXPERIENCED YEARS EXPERIENCED YEARS </textPath>
+                            </text>
+                        </svg>
+                        <div class="wcu-badge-center">
+                            <span class="wcu-badge-num"><?= e($wcuExpNum) ?></span>
+                            <span class="wcu-badge-label"><?= e($wcuExpLabel) ?></span>
+                        </div>
+                    </div>
+
+                    <div class="wcu-float-card">
+                        <div class="wcu-float-icon"><i class="<?= e($wcuFltIcon) ?>"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="wcu-content fade-in-right">
+                    <div class="wcu-label-row">
+                        <span class="wcu-label-icon"><i class="fas fa-plus-circle"></i></span>
+                        <?= e($wcuLabel) ?>
+                    </div>
+                    <h2 class="wcu-heading"><?= e($wcuTitle) ?></h2>
+                    <div class="wcu-grid">
+                        <?php foreach (array_slice($wcuFeats, 0, 4) as $fi => $feat): ?>
+                        <div class="wcu-card">
+                            <div class="wcu-card-top">
+                                <div class="wcu-card-icon"><i class="<?= e($feat['icon'] ?? 'fas fa-star') ?>"></i></div>
+                                <span class="wcu-card-num"><?= str_pad($fi + 1, 2, '0', STR_PAD_LEFT) ?></span>
+                            </div>
+                            <h5 class="wcu-card-title"><?= e($feat['title']) ?></h5>
+                            <p class="wcu-card-desc"><?= e($feat['description']) ?></p>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
@@ -809,5 +890,51 @@ $rdyBtn2Link = $ctaReadyData['button2_link'] ?? '/public/contact.php';
     </div>
 </section>
 <?php endif; ?>
+
+<style>
+/* ============================================================
+   WHY CHOOSE US SECTION
+   ============================================================ */
+.wcu-section { background: linear-gradient(135deg, #091b44 0%, #0d2260 40%, #091b44 100%); padding: 5rem 0; position: relative; overflow: hidden; }
+.wcu-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(13,110,253,0.12) 0%, transparent 70%); pointer-events: none; }
+.wcu-photos-wrap { position: relative; min-height: 460px; padding-bottom: 3rem; }
+.wcu-photo-main { width: 72%; height: 400px; object-fit: cover; object-position: top center; border-radius: 16px; display: block; }
+.wcu-photo-ph { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.07); border: 2px dashed rgba(255,255,255,0.18); font-size: 4.5rem; color: rgba(255,255,255,0.25); border-radius: 16px; }
+.wcu-photo-ph-sm { font-size: 2.5rem; }
+.wcu-photo-secondary { position: absolute; bottom: 0; right: 0; width: 54%; height: 210px; object-fit: cover; object-position: top center; border-radius: 14px; border: 4px solid rgba(255,255,255,0.1); display: block; }
+.wcu-badge { position: absolute; top: 10px; right: 30%; width: 140px; height: 140px; z-index: 10; }
+.wcu-badge-ring { width: 100%; height: 100%; animation: wcu-spin 16s linear infinite; display: block; }
+.wcu-badge-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 82px; height: 82px; border-radius: 50%; background: #091b44; border: 2px solid rgba(255,255,255,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+.wcu-badge-num { font-size: 1.55rem; font-weight: 900; color: #fff; line-height: 1.1; }
+.wcu-badge-label { font-size: 0.52rem; color: #7aa7d5; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+@keyframes wcu-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.wcu-float-card { position: absolute; bottom: 2.5rem; left: -0.5rem; background: rgba(13,110,253,0.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 0.9rem 1.2rem; z-index: 10; }
+.wcu-float-icon { color: #06b6d4; font-size: 2rem; line-height: 1; }
+.wcu-content { padding-left: 1rem; }
+.wcu-label-row { display: inline-flex; align-items: center; gap: 0.5rem; color: #06b6d4; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.85rem; }
+.wcu-label-icon { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #06b6d4; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; flex-shrink: 0; }
+.wcu-heading { font-size: clamp(1.6rem, 2.8vw, 2.35rem); font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 1.75rem; }
+.wcu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.wcu-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 1.2rem; transition: background 0.3s, transform 0.3s, border-color 0.3s; }
+.wcu-card:hover { background: rgba(255,255,255,0.11); transform: translateY(-4px); border-color: rgba(6,182,212,0.35); }
+.wcu-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; }
+.wcu-card-icon { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(13,110,253,0.25)); display: flex; align-items: center; justify-content: center; color: #06b6d4; font-size: 1.1rem; flex-shrink: 0; }
+.wcu-card-num { font-size: 1.8rem; font-weight: 900; color: rgba(255,255,255,0.1); line-height: 1; }
+.wcu-card-title { font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem; }
+.wcu-card-desc { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin: 0; line-height: 1.6; }
+@media (max-width: 991px) { .wcu-content { padding-left: 0; margin-top: 1rem; } }
+@media (max-width: 767px) {
+    .wcu-section { padding: 3.5rem 0; }
+    .wcu-photos-wrap { min-height: 320px; padding-bottom: 2.5rem; }
+    .wcu-photo-main { width: 100%; height: 260px; }
+    .wcu-photo-secondary { width: 52%; height: 150px; bottom: -0.25rem; }
+    .wcu-badge { width: 110px; height: 110px; right: 22%; top: -15px; }
+    .wcu-badge-center { width: 64px; height: 64px; }
+    .wcu-badge-num { font-size: 1.2rem; }
+    .wcu-float-card { left: 0; bottom: 2rem; }
+    .wcu-grid { grid-template-columns: 1fr; }
+}
+/* ============================================================ */
+</style>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
