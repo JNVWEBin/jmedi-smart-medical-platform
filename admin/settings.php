@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($logoFields as $field => $label) {
                 if (!empty($_FILES[$field]['name'])) {
                     $result = uploadImageDetailed($_FILES[$field], 'logos');
-                    if (str_starts_with($result, '/')) {
+                    if (substr($result, 0, 1) === '/') {
                         updateSetting($pdo, $field, $result);
                     } else {
                         $errors[] = "$label Logo: $result";
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             /* ── Favicon upload ── */
             if (!empty($_FILES['favicon_file']['name'])) {
                 $result = uploadImageDetailed($_FILES['favicon_file'], 'logos');
-                if (str_starts_with($result, '/')) {
+                if (substr($result, 0, 1) === '/') {
                     updateSetting($pdo, 'favicon', $result);
                 } else {
                     $errors[] = "Favicon: $result";
