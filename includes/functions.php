@@ -27,8 +27,13 @@ function getSetting(PDO $pdo, string $key, string $default = ''): string {
 }
 
 function updateSetting(PDO $pdo, string $key, string $value): void {
-    $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value");
-    $stmt->execute([':key' => $key, ':value' => $value]);
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    if ($driver === 'pgsql') {
+        $sql = "INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value";
+    } else {
+        $sql = "INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)";
+    }
+    $pdo->prepare($sql)->execute([':key' => $key, ':value' => $value]);
 }
 
 function getDepartments(PDO $pdo, bool $activeOnly = true): array {
@@ -343,7 +348,13 @@ function getAvailableSlots(PDO $pdo, int $doctorId, string $date): array {
 
 function saveDoctorSchedule(PDO $pdo, int $doctorId, int $dayOfWeek, string $sessionLabel, array $data): bool {
     try {
-        $stmt = $pdo->prepare("INSERT INTO doctor_schedules (doctor_id, day_of_week, session_label, start_time, end_time, slot_duration_minutes, is_active) VALUES (:did, :dow, :label, :start, :end, :dur, :active) ON CONFLICT (doctor_id, day_of_week, session_label) DO UPDATE SET start_time = EXCLUDED.start_time, end_time = EXCLUDED.end_time, slot_duration_minutes = EXCLUDED.slot_duration_minutes, is_active = EXCLUDED.is_active");
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'pgsql') {
+            $sql = "INSERT INTO doctor_schedules (doctor_id, day_of_week, session_label, start_time, end_time, slot_duration_minutes, is_active) VALUES (:did, :dow, :label, :start, :end, :dur, :active) ON CONFLICT (doctor_id, day_of_week, session_label) DO UPDATE SET start_time = EXCLUDED.start_time, end_time = EXCLUDED.end_time, slot_duration_minutes = EXCLUDED.slot_duration_minutes, is_active = EXCLUDED.is_active";
+        } else {
+            $sql = "INSERT INTO doctor_schedules (doctor_id, day_of_week, session_label, start_time, end_time, slot_duration_minutes, is_active) VALUES (:did, :dow, :label, :start, :end, :dur, :active) ON DUPLICATE KEY UPDATE start_time = VALUES(start_time), end_time = VALUES(end_time), slot_duration_minutes = VALUES(slot_duration_minutes), is_active = VALUES(is_active)";
+        }
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':did' => $doctorId, ':dow' => $dayOfWeek, ':label' => $sessionLabel,
             ':start' => $data['start_time'], ':end' => $data['end_time'],
