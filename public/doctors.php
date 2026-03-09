@@ -68,7 +68,7 @@ if ($search) {
                             <h5><?= e($doc['name']) ?></h5>
                             <span class="dept-badge"><?= e($doc['department_name'] ?? '') ?></span>
                             <p class="text-muted small mt-2 mb-2"><?= e($doc['specialization'] ?? '') ?></p>
-                            <a href="/public/doctor-profile.php?id=<?= $doc['doctor_id'] ?>" class="btn btn-sm btn-outline-primary">View Profile</a>
+                            <a href="<?= $doc['slug'] ? '/doctor/' . e($doc['slug']) : '/public/doctor-profile.php?id=' . $doc['doctor_id'] ?>" class="btn btn-sm btn-outline-primary">View Profile</a>
                         </div>
                     </div>
                 </div>
