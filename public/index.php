@@ -798,12 +798,14 @@ $rdyBtn2Link = $ctaReadyData['button2_link'] ?? '/public/contact.php';
         <i class="fas fa-heartbeat mb-3" style="font-size:3rem;opacity:0.3;"></i>
         <h2><?= e($rdyHeading) ?></h2>
         <p class="mb-4 mx-auto" style="max-width:600px;"><?= e($rdyDesc) ?></p>
-        <a href="<?= e($rdyBtn1Link) ?>" class="btn btn-light btn-lg px-5 me-2" style="border-radius:30px;font-weight:700;color:var(--secondary);">
-            <i class="fas fa-calendar-check me-2"></i><?= e($rdyBtn1Text) ?>
-        </a>
-        <a href="<?= e($rdyBtn2Link) ?>" class="btn btn-outline-light btn-lg px-5" style="border-radius:30px;">
-            <i class="fas fa-phone me-2"></i><?= e($rdyBtn2Text) ?>
-        </a>
+        <div class="cta-ready-btns">
+            <a href="<?= e($rdyBtn1Link) ?>" class="btn btn-light cta-ready-btn" style="border-radius:30px;font-weight:700;color:var(--secondary);">
+                <i class="fas fa-calendar-check me-2"></i><?= e($rdyBtn1Text) ?>
+            </a>
+            <a href="<?= e($rdyBtn2Link) ?>" class="btn btn-outline-light cta-ready-btn" style="border-radius:30px;">
+                <i class="fas fa-phone me-2"></i><?= e($rdyBtn2Text) ?>
+            </a>
+        </div>
     </div>
 </section>
 <?php endif; ?>
