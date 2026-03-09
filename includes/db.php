@@ -23,8 +23,8 @@ if ($db_url) {
         $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
     }
 } else {
-    /* cPanel production — PostgreSQL */
-    $host   = 'localhost';
+    /* cPanel production — PostgreSQL (use 127.0.0.1 to force IPv4; localhost resolves to ::1 and is blocked) */
+    $host   = '127.0.0.1';
     $port   = 5432;
     $dbname = 'svaobtfy_jmedi';
     $user   = 'svaobtfy_jmedi';
