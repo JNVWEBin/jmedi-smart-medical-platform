@@ -15,6 +15,7 @@ $pendingNotif = (int)$pdo->query("SELECT COUNT(*) FROM appointments WHERE status
 
 $adminLogoUrl  = getSetting($pdo, 'admin_logo', '');
 $siteNameFull  = getSetting($pdo, 'site_name', 'JMedi');
+$adminUsername = $_SESSION['admin_username'] ?? 'admin';
 
 if (isDoctor()) {
     $docId = (int)($_SESSION['admin_doctor_id'] ?? 0);
@@ -252,26 +253,43 @@ if (isDoctor()) {
                         <div class="topbar-avatar"><?= $adminInitials ?></div>
                         <?php endif; ?>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end profile-dropdown" style="width:260px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.12);border:none;padding:0;">
-                        <div style="padding:18px;text-align:center;border-bottom:1px solid #f0f0f0;">
-                            <?php if ($adminAvatar): ?>
-                            <img src="<?= e($adminAvatar) ?>" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:3px solid #e8f4fd;" alt="">
-                            <?php else: ?>
-                            <div style="width:56px;height:56px;border-radius:50%;background:var(--admin-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.3rem;margin:0 auto 8px;"><?= $adminInitials ?></div>
-                            <?php endif; ?>
-                            <div style="font-weight:700;font-size:1rem;"><?= e($adminName) ?></div>
-                            <div style="font-size:0.82rem;color:#999;margin-bottom:6px;"><?= e($adminEmail) ?></div>
-                            <?= getRoleBadge($adminRole) ?>
+                    <div class="dropdown-menu dropdown-menu-end pd-wrap">
+                        <?php if (!empty($adminLogoUrl)): ?>
+                        <div class="pd-brand-bar">
+                            <img src="<?= e($adminLogoUrl) ?>" class="pd-brand-img" alt="<?= e($siteNameFull) ?>">
                         </div>
-                        <div style="padding:8px;">
-                            <a href="/admin/profile.php" class="dropdown-item" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-user-circle me-2 text-muted"></i>My Profile</a>
-                            <a href="/admin/profile.php?tab=password" class="dropdown-item" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-key me-2 text-muted"></i>Change Password</a>
+                        <?php endif; ?>
+                        <div class="pd-user-block">
+                            <div class="pd-avatar-ring">
+                                <?php if ($adminAvatar): ?>
+                                <img src="<?= e($adminAvatar) ?>" class="pd-avatar-img" alt="">
+                                <?php else: ?>
+                                <div class="pd-avatar-init"><?= $adminInitials ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="pd-name"><?= e($adminName) ?></div>
+                            <div class="pd-email"><?= e($adminEmail) ?></div>
+                            <div class="pd-badge-wrap"><?= getRoleBadge($adminRole) ?></div>
+                        </div>
+                        <div class="pd-meta">
+                            <div class="pd-meta-row">
+                                <span class="pd-meta-lbl">Username</span>
+                                <span class="pd-meta-val"><?= e($adminUsername) ?></span>
+                            </div>
+                            <div class="pd-meta-row">
+                                <span class="pd-meta-lbl">Role</span>
+                                <span class="pd-meta-val"><?= ucfirst($adminRole) ?></span>
+                            </div>
+                        </div>
+                        <div class="pd-actions">
+                            <a href="/admin/profile.php" class="pd-action"><i class="fas fa-user-circle"></i>My Profile</a>
+                            <a href="/admin/profile.php?tab=password" class="pd-action"><i class="fas fa-key"></i>Change Password</a>
                             <?php if (isSuperAdmin()): ?>
-                            <a href="/admin/users.php" class="dropdown-item" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-users-cog me-2 text-muted"></i>User Management</a>
+                            <a href="/admin/users.php" class="pd-action"><i class="fas fa-users-cog"></i>User Management</a>
                             <?php endif; ?>
                         </div>
-                        <div style="padding:8px;border-top:1px solid #f0f0f0;">
-                            <a href="/admin/logout.php" class="dropdown-item text-danger" style="border-radius:8px;padding:8px 14px;font-size:0.9rem;"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                        <div class="pd-footer-bar">
+                            <a href="/admin/logout.php" class="pd-logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
                         </div>
                     </div>
                 </div>
