@@ -103,21 +103,12 @@
     var collapseBtn= document.getElementById('sbCollapseBtn');   // sidebar chevron button
     var isMobile   = function() { return window.innerWidth < 992; };
 
-    /* ---- Apply saved collapse state on load ---- */
-    function applyCollapsedState() {
-        if (!isMobile() && localStorage.getItem('sbCollapsed') === 'true') {
-            sidebar.classList.add('sb-collapsed');
-        } else if (!isMobile()) {
-            sidebar.classList.remove('sb-collapsed');
-        }
-    }
-    applyCollapsedState();
+    /* ---- Always start expanded; only collapse when user explicitly clicks the chevron ---- */
+    sidebar.classList.remove('sb-collapsed');
+    localStorage.removeItem('sbCollapsed');
+
     window.addEventListener('resize', function() {
-        if (isMobile()) {
-            sidebar.classList.remove('sb-collapsed');
-        } else {
-            applyCollapsedState();
-        }
+        if (isMobile()) { sidebar.classList.remove('sb-collapsed'); }
     });
 
     /* ---- Topbar hamburger — mobile: show/hide, desktop: expand (if collapsed) ---- */
