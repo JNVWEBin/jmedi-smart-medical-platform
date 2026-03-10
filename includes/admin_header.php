@@ -47,24 +47,29 @@ if (isDoctor()) {
         <div class="sidebar-header">
             <a href="/admin/dashboard.php" class="sidebar-brand text-white text-decoration-none">
                 <span class="brand-icon"><i class="fas fa-heartbeat"></i></span>
-                <span>JMedi</span>
+                <span class="brand-text">JMedi</span>
             </a>
+            <button class="sidebar-collapse-btn" id="sbCollapseBtn" title="Collapse sidebar"><i class="fas fa-chevron-left"></i></button>
         </div>
+        <div class="sidebar-search">
+            <div class="sidebar-search-inner">
+                <i class="fas fa-search"></i>
+                <input type="text" id="sidebarSearchInput" placeholder="Search item..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="sidebar-body">
 
         <?php if (isDoctor() && !empty($sidebarDoctor)): ?>
         <div class="dr-sidebar-profile">
-            <?php
-            $drSidebarName = preg_replace('/^Dr\.?\s*/i', '', $sidebarDoctor['name']);
-            ?>
+            <?php $drSidebarName = preg_replace('/^Dr\.?\s*/i', '', $sidebarDoctor['name']); ?>
             <?php if (!empty($sidebarDoctor['photo'])): ?>
             <img src="<?= e($sidebarDoctor['photo']) ?>" class="dr-sb-photo" alt="Dr. <?= e($drSidebarName) ?>">
             <?php else: ?>
             <div class="dr-sb-avatar"><?= strtoupper(substr($drSidebarName, 0, 1)) ?></div>
             <?php endif; ?>
             <div class="dr-sb-name">Dr. <?= e($drSidebarName) ?></div>
-            <?php if (!empty($sidebarDoctor['specialization'])): ?>
-            <div class="dr-sb-spec"><?= e($sidebarDoctor['specialization']) ?></div>
-            <?php endif; ?>
+            <?php if (!empty($sidebarDoctor['specialization'])): ?><div class="dr-sb-spec"><?= e($sidebarDoctor['specialization']) ?></div><?php endif; ?>
             <?php if (!empty($sidebarDoctor['qualification'])): ?>
             <div class="dr-sb-qual"><?= e($sidebarDoctor['qualification']) ?></div>
             <?php elseif (!empty($sidebarDoctor['department_name'])): ?>
@@ -74,42 +79,50 @@ if (isDoctor()) {
         </div>
         <?php endif; ?>
 
-        <div class="sidebar-section-label" data-section="menu" role="button" tabindex="0" aria-expanded="true" aria-controls="section-menu"><span>Menu</span><i class="fas fa-chevron-down section-arrow"></i></div>
+        <div class="sidebar-section-label" data-section="menu" role="button" tabindex="0" aria-expanded="true" aria-controls="section-menu"><span>Overview</span><i class="fas fa-chevron-down section-arrow"></i></div>
         <ul class="sidebar-nav" data-section-list="menu" id="section-menu">
             <li class="<?= $adminPage === 'dashboard' ? 'active' : '' ?>">
-                <a href="/admin/dashboard.php" data-tooltip="Dashboard"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+                <a href="/admin/dashboard.php" data-tooltip="Dashboard"><i class="fas fa-th-large"></i><span class="nav-label">Dashboard</span></a>
             </li>
             <?php if (hasPermission('doctors')): ?>
             <li class="<?= $adminPage === 'doctors' ? 'active' : '' ?>">
-                <a href="/admin/doctors.php" data-tooltip="Doctors"><i class="fas fa-user-md"></i><span>Doctors</span></a>
+                <a href="/admin/doctors.php" data-tooltip="Doctors"><i class="fas fa-user-md"></i><span class="nav-label">Doctors</span></a>
             </li>
             <li class="<?= $adminPage === 'doctor-schedules' ? 'active' : '' ?>">
-                <a href="/admin/doctor-schedules.php" data-tooltip="Doctor Schedules"><i class="fas fa-calendar-alt"></i><span>Doctor Schedules</span></a>
+                <a href="/admin/doctor-schedules.php" data-tooltip="Schedules"><i class="fas fa-calendar-alt"></i><span class="nav-label">Schedules</span></a>
             </li>
             <?php endif; ?>
             <?php if (hasPermission('departments')): ?>
             <li class="<?= $adminPage === 'departments' ? 'active' : '' ?>">
-                <a href="/admin/departments.php" data-tooltip="Departments"><i class="fas fa-hospital"></i><span>Departments</span></a>
+                <a href="/admin/departments.php" data-tooltip="Departments"><i class="fas fa-hospital"></i><span class="nav-label">Departments</span></a>
             </li>
             <?php endif; ?>
             <?php if (hasPermission('appointments')): ?>
             <li class="<?= $adminPage === 'appointments' ? 'active' : '' ?>">
-                <a href="/admin/appointments.php" data-tooltip="Appointments"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                <a href="/admin/appointments.php" data-tooltip="Appointments">
+                    <i class="fas fa-calendar-check"></i>
+                    <span class="nav-label">Appointments</span>
+                    <?php if ($pendingNotif > 0): ?><span class="sb-badge"><?= $pendingNotif ?></span><?php endif; ?>
+                </a>
             </li>
             <?php endif; ?>
             <?php if (isDoctor()): ?>
             <li class="<?= $adminPage === 'appointments' ? 'active' : '' ?>">
-                <a href="/admin/appointments.php" data-tooltip="My Appointments"><i class="fas fa-calendar-check"></i><span>My Appointments</span></a>
+                <a href="/admin/appointments.php" data-tooltip="My Appointments">
+                    <i class="fas fa-calendar-check"></i>
+                    <span class="nav-label">My Appointments</span>
+                    <?php if ($pendingNotif > 0): ?><span class="sb-badge"><?= $pendingNotif ?></span><?php endif; ?>
+                </a>
             </li>
             <?php endif; ?>
             <?php if (hasPermission('blog')): ?>
             <li class="<?= $adminPage === 'blog' ? 'active' : '' ?>">
-                <a href="/admin/blog.php" data-tooltip="Blog Posts"><i class="fas fa-newspaper"></i><span>Blog Posts</span></a>
+                <a href="/admin/blog.php" data-tooltip="Blog Posts"><i class="fas fa-newspaper"></i><span class="nav-label">Blog Posts</span></a>
             </li>
             <?php endif; ?>
             <?php if (hasPermission('testimonials')): ?>
             <li class="<?= $adminPage === 'testimonials' ? 'active' : '' ?>">
-                <a href="/admin/testimonials.php" data-tooltip="Testimonials"><i class="fas fa-comments"></i><span>Testimonials</span></a>
+                <a href="/admin/testimonials.php" data-tooltip="Testimonials"><i class="fas fa-comments"></i><span class="nav-label">Testimonials</span></a>
             </li>
             <?php endif; ?>
         </ul>
@@ -119,17 +132,17 @@ if (isDoctor()) {
         <ul class="sidebar-nav" data-section-list="cms" id="section-cms">
             <?php if (hasPermission('home_sections')): ?>
             <li class="<?= $adminPage === 'home-sections' ? 'active' : '' ?>">
-                <a href="/admin/home-sections.php" data-tooltip="Home Sections"><i class="fas fa-home"></i><span>Home Sections</span></a>
+                <a href="/admin/home-sections.php" data-tooltip="Home Sections"><i class="fas fa-home"></i><span class="nav-label">Home Sections</span></a>
             </li>
             <?php endif; ?>
             <?php if (hasPermission('menu_manager')): ?>
             <li class="<?= $adminPage === 'menu-manager' ? 'active' : '' ?>">
-                <a href="/admin/menu-manager.php" data-tooltip="Menu Manager"><i class="fas fa-bars"></i><span>Menu Manager</span></a>
+                <a href="/admin/menu-manager.php" data-tooltip="Menu Manager"><i class="fas fa-bars"></i><span class="nav-label">Menu Manager</span></a>
             </li>
             <?php endif; ?>
             <?php if (hasPermission('pages')): ?>
             <li class="<?= $adminPage === 'pages' ? 'active' : '' ?>">
-                <a href="/admin/pages.php" data-tooltip="Page Editor"><i class="fas fa-file-alt"></i><span>Page Editor</span></a>
+                <a href="/admin/pages.php" data-tooltip="Page Editor"><i class="fas fa-file-alt"></i><span class="nav-label">Page Editor</span></a>
             </li>
             <?php endif; ?>
         </ul>
@@ -139,34 +152,49 @@ if (isDoctor()) {
         <div class="sidebar-section-label" data-section="superadmin" role="button" tabindex="0" aria-expanded="true" aria-controls="section-superadmin"><span>Super Admin</span><i class="fas fa-chevron-down section-arrow"></i></div>
         <ul class="sidebar-nav" data-section-list="superadmin" id="section-superadmin">
             <li class="<?= $adminPage === 'users' ? 'active' : '' ?>">
-                <a href="/admin/users.php" data-tooltip="User Management"><i class="fas fa-users-cog"></i><span>User Management</span></a>
+                <a href="/admin/users.php" data-tooltip="Users"><i class="fas fa-users-cog"></i><span class="nav-label">User Management</span></a>
             </li>
             <li class="<?= $adminPage === 'database' ? 'active' : '' ?>">
-                <a href="/admin/database.php" data-tooltip="Database Tools"><i class="fas fa-database"></i><span>Database Tools</span></a>
+                <a href="/admin/database.php" data-tooltip="Database"><i class="fas fa-database"></i><span class="nav-label">Database Tools</span></a>
             </li>
             <li class="<?= $adminPage === 'backup' ? 'active' : '' ?>">
-                <a href="/admin/backup.php" data-tooltip="Site Backup"><i class="fas fa-download"></i><span>Site Backup</span></a>
+                <a href="/admin/backup.php" data-tooltip="Backup"><i class="fas fa-download"></i><span class="nav-label">Site Backup</span></a>
             </li>
         </ul>
         <?php endif; ?>
 
-        <div class="sidebar-section-label" data-section="other" role="button" tabindex="0" aria-expanded="true" aria-controls="section-other"><span>Other Menu</span><i class="fas fa-chevron-down section-arrow"></i></div>
+        <div class="sidebar-section-label" data-section="other" role="button" tabindex="0" aria-expanded="true" aria-controls="section-other"><span>General</span><i class="fas fa-chevron-down section-arrow"></i></div>
         <ul class="sidebar-nav" data-section-list="other" id="section-other">
             <?php if (hasPermission('settings')): ?>
             <li class="<?= $adminPage === 'settings' ? 'active' : '' ?>">
-                <a href="/admin/settings.php" data-tooltip="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="/admin/settings.php" data-tooltip="Settings"><i class="fas fa-cog"></i><span class="nav-label">Settings</span></a>
             </li>
             <?php endif; ?>
             <li class="<?= $adminPage === 'profile' ? 'active' : '' ?>">
-                <a href="/admin/profile.php" data-tooltip="My Profile"><i class="fas fa-user-circle"></i><span>My Profile</span></a>
+                <a href="/admin/profile.php" data-tooltip="My Profile"><i class="fas fa-user-circle"></i><span class="nav-label">My Profile</span></a>
             </li>
             <li>
-                <a href="/" data-tooltip="View Website"><i class="fas fa-globe"></i><span>View Website</span></a>
+                <a href="/" data-tooltip="View Website" target="_blank"><i class="fas fa-globe"></i><span class="nav-label">View Website</span></a>
             </li>
             <li>
-                <a href="/admin/logout.php" data-tooltip="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+                <a href="/admin/logout.php" data-tooltip="Logout" style="color:rgba(239,68,68,0.7);" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(239,68,68,0.7)'"><i class="fas fa-sign-out-alt"></i><span class="nav-label">Logout</span></a>
             </li>
         </ul>
+
+        </div><!-- end sidebar-body -->
+
+        <div class="sidebar-footer">
+            <?php if ($adminAvatar): ?>
+            <div class="sb-footer-avatar"><img src="<?= e($adminAvatar) ?>" alt=""></div>
+            <?php else: ?>
+            <div class="sb-footer-avatar"><?= $adminInitials ?></div>
+            <?php endif; ?>
+            <div class="sb-footer-info">
+                <div class="sb-footer-name"><?= e($adminName) ?></div>
+                <div class="sb-footer-role"><?= ucfirst($adminRole) ?></div>
+            </div>
+            <a href="/admin/logout.php" class="sb-footer-logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
     </nav>
 
     <div class="admin-content">
