@@ -121,6 +121,11 @@ if (isDoctor()) {
                 <a href="/admin/blog.php" data-tooltip="Blog Posts"><i class="fas fa-newspaper"></i><span class="nav-label">Blog Posts</span></a>
             </li>
             <?php endif; ?>
+            <?php if (hasPermission('content') || hasPermission('blog')): ?>
+            <li class="<?= $adminPage === 'before-after' ? 'active' : '' ?>">
+                <a href="/admin/before-after.php" data-tooltip="Before &amp; After"><i class="fas fa-images"></i><span class="nav-label">Before &amp; After</span></a>
+            </li>
+            <?php endif; ?>
             <?php if (hasPermission('testimonials')): ?>
             <li class="<?= $adminPage === 'testimonials' ? 'active' : '' ?>">
                 <a href="/admin/testimonials.php" data-tooltip="Testimonials"><i class="fas fa-comments"></i><span class="nav-label">Testimonials</span></a>
