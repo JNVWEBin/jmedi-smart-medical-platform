@@ -29,11 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'site_name','tagline','phone','emergency_phone','email','address',
                 'facebook','twitter','instagram','linkedin','youtube',
                 'primary_color','secondary_color','footer_text','whatsapp_number','whatsapp_message',
-                'appointment_email','google_maps_embed','meta_description','favicon','site_template'
+                'appointment_email','google_maps_embed','meta_description','favicon'
             ];
             foreach ($settingKeys as $key) {
                 if (isset($_POST[$key])) {
                     updateSetting($pdo, $key, trim($_POST[$key]));
+                }
+            }
+            if (isSuperAdmin() && isset($_POST['site_template'])) {
+                $allowedTpl = ['hospital', 'plastic_surgery'];
+                $tplVal = trim($_POST['site_template']);
+                if (in_array($tplVal, $allowedTpl)) {
+                    updateSetting($pdo, 'site_template', $tplVal);
                 }
             }
 
@@ -471,8 +478,9 @@ $tab = $_GET['tab'] ?? 'general';
             <form method="POST" enctype="multipart/form-data">
                 <?= csrfField() ?>
                 <div class="row g-3">
+                    <?php if (isSuperAdmin()): ?>
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Website Template / Theme</label>
+                        <label class="form-label fw-semibold">Website Template / Theme <span class="badge ms-1" style="font-size:.65rem;background:var(--admin-accent);color:#fff;border-radius:6px;padding:.25em .55em;">Super Admin</span></label>
                         <div class="row g-3 mt-1">
                             <?php
                             $currentTpl = $s['site_template'] ?? 'hospital';
@@ -491,7 +499,7 @@ $tab = $_GET['tab'] ?? 'general';
                                             <div class="tpl-icon"><i class="<?= $tpl['icon'] ?>"></i></div>
                                             <div>
                                                 <div class="fw-700"><?= $tpl['label'] ?></div>
-                                                <small class="text-muted" style="font-size:.76rem;"><?= ucfirst($tplKey) ?> template</small>
+                                                <small class="text-muted" style="font-size:.76rem;"><?= ucfirst(str_replace('_',' ',$tplKey)) ?> template</small>
                                             </div>
                                             <div class="ms-auto"><i class="fas fa-check-circle tpl-check <?= $checked ? 'text-success' : 'text-muted opacity-25' ?>"></i></div>
                                         </div>
@@ -503,6 +511,7 @@ $tab = $_GET['tab'] ?? 'general';
                         </div>
                         <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Changing the template updates the public homepage layout immediately after saving.</small>
                     </div>
+                    <?php endif; ?>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Primary Color</label>
                         <div class="d-flex align-items-center gap-2">
