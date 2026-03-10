@@ -290,6 +290,9 @@
 .admin-sidebar.sb-collapsed .sidebar-header { justify-content: center; padding: 1.3rem 0.6rem; }
 .admin-sidebar.sb-collapsed .sidebar-collapse-btn { display: none; }
 .admin-sidebar.sb-collapsed .sidebar-section-label { padding: 0.9rem 0; justify-content: center; }
+/* Always show ALL nav items in icon-only mode regardless of section collapse state */
+.admin-sidebar.sb-collapsed .section-hidden,
+.admin-sidebar.sb-collapsed .sidebar-nav ul.section-hidden { display: block !important; }
 .admin-sidebar.sb-collapsed .sidebar-nav { padding-left: 0.5rem; padding-right: 0.5rem; }
 .admin-sidebar.sb-collapsed .sidebar-nav li a { justify-content: center; padding: 0.6rem; border-radius: 10px; }
 .admin-sidebar.sb-collapsed .sidebar-nav li a::before { display: none; }
