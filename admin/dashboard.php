@@ -365,281 +365,295 @@ if (isDoctor()) {
     $totalUsers = getCount($pdo, 'admins');
 ?>
 
-<div class="greeting-section d-flex justify-content-between align-items-center flex-wrap gap-2">
+<!-- ======= GREETING ======= -->
+<div class="dsh-greeting">
     <div>
-        <h4>Hello, <?= e($_SESSION['admin_name'] ?? 'Admin') ?> 👋</h4>
-        <p>There is the latest update for the last 7 days, check now</p>
+        <h4 class="dsh-hello">Welcome back, <?= e($_SESSION['admin_name'] ?? 'Admin') ?> 👋</h4>
+        <p class="dsh-sub">Here is your latest clinic overview for <?= date('l, jS F Y') ?></p>
     </div>
-    <div class="greeting-date">
-        <i class="fas fa-calendar-alt"></i>
-        <?= date('l, jS F') ?>
+    <div class="dsh-greeting-right">
+        <?php if ($pendingCount > 0): ?>
+        <a href="/admin/appointments.php?status=pending" class="dsh-pending-pill">
+            <i class="fas fa-clock"></i> <?= $pendingCount ?> Pending
+        </a>
+        <?php endif; ?>
+        <a href="/admin/appointments.php" class="dsh-primary-btn">
+            <i class="fas fa-calendar-plus me-1"></i> New Appointment
+        </a>
     </div>
 </div>
 
+<!-- ======= KPI CARDS ======= -->
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card highlight">
-            <div class="stat-icon-wrap" style="background:rgba(255,255,255,0.15);">
-                <i class="fas fa-calendar-check" style="color:#fff;"></i>
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-top">
+                <div class="dsh-kpi-icon" style="background:#eef2ff;color:#4f6ef7"><i class="fas fa-calendar-check"></i></div>
+                <span class="dsh-kpi-label">Total Appointments</span>
             </div>
-            <div class="stat-label">Appointments</div>
-            <div class="stat-number"><?= number_format($totalAppointments) ?></div>
-            <div class="stat-trend" style="color:rgba(255,255,255,0.8);">
-                <i class="fas fa-arrow-up"></i> <?= $pendingCount ?> pending
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card">
-            <div class="stat-icon-wrap" style="background:rgba(34,197,94,0.12);">
-                <i class="fas fa-user-md" style="color:var(--admin-accent);"></i>
-            </div>
-            <div class="stat-label">Active Doctors</div>
-            <div class="stat-number"><?= $totalDoctors ?></div>
-            <div class="stat-trend up">
-                <i class="fas fa-arrow-up"></i> across <?= $totalDepts ?> depts
+            <div class="dsh-kpi-num"><?= number_format($totalAppointments) ?></div>
+            <div class="dsh-kpi-foot">
+                <span class="dsh-kpi-trend <?= $pendingCount > 0 ? 'warn' : 'up' ?>">
+                    <i class="fas fa-arrow-<?= $pendingCount > 0 ? 'right' : 'up' ?>"></i> <?= $pendingCount ?> pending
+                </span>
+                <svg class="dsh-spark" viewBox="0 0 60 28" fill="none"><polyline points="0,22 10,16 20,20 30,10 40,14 50,6 60,10" stroke="#4f6ef7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,22 10,16 20,20 30,10 40,14 50,6 60,10" stroke="#4f6ef7" stroke-width="6" opacity="0.08"/></svg>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card">
-            <div class="stat-icon-wrap" style="background:rgba(59,130,246,0.12);">
-                <i class="fas fa-hospital" style="color:#3b82f6;"></i>
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-top">
+                <div class="dsh-kpi-icon" style="background:#ecfdf5;color:#059669"><i class="fas fa-user-md"></i></div>
+                <span class="dsh-kpi-label">Active Doctors</span>
             </div>
-            <div class="stat-label">Departments</div>
-            <div class="stat-number"><?= $totalDepts ?></div>
-            <div class="stat-trend up">
-                <i class="fas fa-check-circle"></i> all active
+            <div class="dsh-kpi-num"><?= $totalDoctors ?></div>
+            <div class="dsh-kpi-foot">
+                <span class="dsh-kpi-trend up"><i class="fas fa-arrow-up"></i> <?= $totalDepts ?> departments</span>
+                <svg class="dsh-spark" viewBox="0 0 60 28" fill="none"><polyline points="0,20 10,14 20,18 30,8 40,12 50,6 60,10" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,20 10,14 20,18 30,8 40,12 50,6 60,10" stroke="#059669" stroke-width="6" opacity="0.08"/></svg>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="dash-stat-card">
-            <div class="stat-icon-wrap" style="background:rgba(139,92,246,0.12);">
-                <i class="fas fa-users" style="color:#8b5cf6;"></i>
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-top">
+                <div class="dsh-kpi-icon" style="background:#eff6ff;color:#3b82f6"><i class="fas fa-hospital-alt"></i></div>
+                <span class="dsh-kpi-label">Departments</span>
             </div>
-            <div class="stat-label">Total Patients</div>
-            <div class="stat-number"><?= number_format($totalAppointments) ?></div>
-            <div class="stat-trend up">
-                <i class="fas fa-arrow-up"></i> <?= $confirmedCount ?> confirmed
+            <div class="dsh-kpi-num"><?= $totalDepts ?></div>
+            <div class="dsh-kpi-foot">
+                <span class="dsh-kpi-trend up"><i class="fas fa-check-circle"></i> all active</span>
+                <svg class="dsh-spark" viewBox="0 0 60 28" fill="none"><polyline points="0,18 10,12 20,16 30,6 40,10 50,4 60,8" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,18 10,12 20,16 30,6 40,10 50,4 60,8" stroke="#3b82f6" stroke-width="6" opacity="0.08"/></svg>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-top">
+                <div class="dsh-kpi-icon" style="background:#faf5ff;color:#8b5cf6"><i class="fas fa-users"></i></div>
+                <span class="dsh-kpi-label">Confirmed Patients</span>
+            </div>
+            <div class="dsh-kpi-num"><?= number_format($confirmedCount) ?></div>
+            <div class="dsh-kpi-foot">
+                <span class="dsh-kpi-trend up"><i class="fas fa-arrow-up"></i> <?= $completedCount ?> completed</span>
+                <svg class="dsh-spark" viewBox="0 0 60 28" fill="none"><polyline points="0,24 10,18 20,22 30,12 40,16 50,8 60,12" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,24 10,18 20,22 30,12 40,16 50,8 60,12" stroke="#8b5cf6" stroke-width="6" opacity="0.08"/></svg>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ======= CHART + CALENDAR ROW ======= -->
 <div class="row g-3 mb-4">
     <div class="col-xl-8">
-        <div class="dash-card">
-            <div class="card-header-row">
-                <h6><i class="fas fa-chart-line me-2" style="color:var(--admin-accent);"></i>Patient Statistics</h6>
-                <div class="card-actions">
-                    <button class="tab-btn">Week</button>
-                    <button class="tab-btn">Month</button>
-                    <button class="tab-btn active">Year</button>
+        <div class="dsh-panel">
+            <div class="dsh-panel-head">
+                <div>
+                    <h6 class="dsh-panel-title">Patient Arrival Statistics</h6>
+                    <p class="dsh-panel-sub">Monthly appointment volume</p>
+                </div>
+                <div class="dsh-tab-group">
+                    <button class="dsh-tab" data-range="week">Week</button>
+                    <button class="dsh-tab" data-range="month">Month</button>
+                    <button class="dsh-tab active" data-range="year">Year</button>
                 </div>
             </div>
-            <div class="chart-container">
+            <div class="dsh-chart-wrap">
                 <canvas id="patientChart"></canvas>
             </div>
         </div>
     </div>
     <div class="col-xl-4">
-        <div class="dash-card calendar-widget">
-            <div class="cal-header">
-                <h6><i class="fas fa-calendar me-2" style="color:var(--admin-accent);"></i>Today <?= date('jS M Y') ?></h6>
+        <div class="dsh-panel dsh-cal-panel">
+            <div class="dsh-panel-head">
+                <h6 class="dsh-panel-title"><i class="fas fa-calendar-alt me-2" style="color:var(--admin-accent)"></i>Today <?= date('d M Y') ?></h6>
             </div>
-            <div class="cal-days">
+            <div class="dsh-cal-strip">
                 <?php foreach ($calDays as $cd): ?>
-                <div class="cal-day <?= $cd['active'] ? 'active' : '' ?>">
-                    <span class="day-num"><?= $cd['num'] ?></span>
-                    <span class="day-name"><?= $cd['name'] ?></span>
+                <div class="dsh-cal-day <?= $cd['active'] ? 'active' : '' ?>">
+                    <span class="dsh-cal-num"><?= $cd['num'] ?></span>
+                    <span class="dsh-cal-name"><?= substr($cd['name'], 0, 3) ?></span>
                 </div>
                 <?php endforeach; ?>
             </div>
-
-            <?php if (!empty($todayAppointments)): ?>
-                <?php foreach ($todayAppointments as $ta): ?>
-                <div class="schedule-item">
-                    <span class="schedule-time"><?= $ta['appointment_time'] ? date('H:i', strtotime($ta['appointment_time'])) : '--:--' ?></span>
-                    <div class="schedule-event">
-                        <h6><?= e($ta['patient_name']) ?></h6>
-                        <small><?= e($ta['doctor_name'] ?? 'Doctor TBD') ?></small>
+            <div class="dsh-schedule-list">
+                <?php if (!empty($todayAppointments)): ?>
+                    <?php foreach ($todayAppointments as $ta): ?>
+                    <div class="dsh-sched-item">
+                        <div class="dsh-sched-avatar"><?= strtoupper(substr($ta['patient_name'], 0, 1)) ?></div>
+                        <div class="dsh-sched-info">
+                            <div class="dsh-sched-name"><?= e($ta['patient_name']) ?></div>
+                            <div class="dsh-sched-doc"><?= e($ta['doctor_name'] ?? 'TBD') ?></div>
+                        </div>
+                        <span class="dsh-sched-time"><?= $ta['appointment_time'] ? date('h:i A', strtotime($ta['appointment_time'])) : '--' ?></span>
                     </div>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="schedule-item">
-                    <span class="schedule-time">--:--</span>
-                    <div class="schedule-event">
-                        <h6>No appointments today</h6>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="dsh-sched-empty">
+                        <i class="fas fa-calendar-check"></i>
+                        <p>No appointments today</p>
                         <small>Schedule is clear</small>
                     </div>
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- ======= OVERVIEW + CONTENT + POSTS ROW ======= -->
 <div class="row g-3 mb-4">
     <div class="col-xl-4">
-        <div class="bottom-stat-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Overview</h6>
+        <div class="dsh-panel">
+            <div class="dsh-panel-head">
+                <h6 class="dsh-panel-title">Appointments Overview</h6>
+                <a href="/admin/appointments.php" class="dsh-panel-link">View all</a>
             </div>
-            <div class="text-center mb-3">
-                <div class="progress-ring-wrap">
-                    <svg width="90" height="90" viewBox="0 0 90 90">
-                        <circle cx="45" cy="45" r="38" fill="none" stroke="#e2ebe5" stroke-width="6"/>
-                        <circle cx="45" cy="45" r="38" fill="none" stroke="#22c55e" stroke-width="6"
-                            stroke-dasharray="<?= $totalAppointments > 0 ? round(($confirmedCount/$totalAppointments)*238.76, 1) : 0 ?> 238.76"
-                            stroke-linecap="round" transform="rotate(-90 45 45)"/>
-                    </svg>
-                    <span class="progress-ring-text"><?= $totalAppointments > 0 ? round(($confirmedCount/$totalAppointments)*100) : 0 ?>%</span>
+            <div class="dsh-donut-wrap">
+                <svg width="100" height="100" viewBox="0 0 100 100" class="dsh-donut-svg">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" stroke-width="10"
+                        stroke-dasharray="<?= $totalAppointments > 0 ? round(($confirmedCount/$totalAppointments)*251.2, 1) : 0 ?> 251.2"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                </svg>
+                <div class="dsh-donut-center">
+                    <div class="dsh-donut-pct"><?= $totalAppointments > 0 ? round(($confirmedCount/$totalAppointments)*100) : 0 ?>%</div>
+                    <div class="dsh-donut-lbl">Confirmed</div>
                 </div>
-                <small class="text-muted">Confirmation Rate</small>
             </div>
-            <div class="income-row">
-                <span class="income-label"><i class="fas fa-check-circle me-2 text-success"></i>Confirmed</span>
-                <span class="income-value"><?= $confirmedCount ?></span>
-            </div>
-            <div class="income-row">
-                <span class="income-label"><i class="fas fa-clock me-2 text-warning"></i>Pending</span>
-                <span class="income-value"><?= $pendingCount ?></span>
-            </div>
-            <div class="income-row">
-                <span class="income-label"><i class="fas fa-clipboard-check me-2 text-primary"></i>Completed</span>
-                <span class="income-value"><?= $completedCount ?></span>
-            </div>
-            <div class="income-row">
-                <span class="income-label"><i class="fas fa-times-circle me-2 text-danger"></i>Cancelled</span>
-                <span class="income-value"><?= $cancelledCount ?></span>
+            <div class="dsh-stat-rows">
+                <div class="dsh-stat-row"><span class="dsh-dot" style="background:#22c55e"></span><span>Confirmed</span><strong class="ms-auto"><?= $confirmedCount ?></strong></div>
+                <div class="dsh-stat-row"><span class="dsh-dot" style="background:#f59e0b"></span><span>Pending</span><strong class="ms-auto"><?= $pendingCount ?></strong></div>
+                <div class="dsh-stat-row"><span class="dsh-dot" style="background:#3b82f6"></span><span>Completed</span><strong class="ms-auto"><?= $completedCount ?></strong></div>
+                <div class="dsh-stat-row"><span class="dsh-dot" style="background:#ef4444"></span><span>Cancelled</span><strong class="ms-auto"><?= $cancelledCount ?></strong></div>
             </div>
         </div>
     </div>
     <div class="col-xl-4">
-        <div class="bottom-stat-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Content Stats</h6>
+        <div class="dsh-panel">
+            <div class="dsh-panel-head">
+                <h6 class="dsh-panel-title">Content Stats</h6>
             </div>
-            <div class="text-center mb-3">
-                <div class="occupancy-num"><?= $totalPosts + $totalSlides ?></div>
-                <span class="occupancy-badge"><i class="fas fa-arrow-up me-1"></i>active</span>
+            <div class="dsh-content-num-wrap">
+                <div class="dsh-content-big"><?= $totalPosts + $totalSlides + $totalTestimonials ?></div>
+                <span class="dsh-content-badge"><i class="fas fa-arrow-up me-1"></i>Total items</span>
             </div>
-            <div class="room-row">
-                <span><i class="fas fa-newspaper"></i><span class="room-label">Blog Posts</span></span>
-                <span class="room-value"><?= $totalPosts ?></span>
-            </div>
-            <div class="room-row">
-                <span><i class="fas fa-images"></i><span class="room-label">Hero Slides</span></span>
-                <span class="room-value"><?= $totalSlides ?></span>
-            </div>
-            <div class="room-row">
-                <span><i class="fas fa-comments"></i><span class="room-label">Testimonials</span></span>
-                <span class="room-value"><?= $totalTestimonials ?></span>
-            </div>
-            <div class="room-row">
-                <span><i class="fas fa-users-cog"></i><span class="room-label">Admin Users</span></span>
-                <span class="room-value"><?= $totalUsers ?></span>
+            <div class="dsh-content-rows">
+                <div class="dsh-content-row">
+                    <div class="dsh-content-icon" style="background:#eef2ff;color:#4f6ef7"><i class="fas fa-newspaper"></i></div>
+                    <span class="dsh-content-lbl">Blog Posts</span>
+                    <strong class="ms-auto"><?= $totalPosts ?></strong>
+                </div>
+                <div class="dsh-content-row">
+                    <div class="dsh-content-icon" style="background:#ecfdf5;color:#059669"><i class="fas fa-images"></i></div>
+                    <span class="dsh-content-lbl">Hero Slides</span>
+                    <strong class="ms-auto"><?= $totalSlides ?></strong>
+                </div>
+                <div class="dsh-content-row">
+                    <div class="dsh-content-icon" style="background:#fffbeb;color:#d97706"><i class="fas fa-comments"></i></div>
+                    <span class="dsh-content-lbl">Testimonials</span>
+                    <strong class="ms-auto"><?= $totalTestimonials ?></strong>
+                </div>
+                <div class="dsh-content-row">
+                    <div class="dsh-content-icon" style="background:#faf5ff;color:#8b5cf6"><i class="fas fa-users-cog"></i></div>
+                    <span class="dsh-content-lbl">Admin Users</span>
+                    <strong class="ms-auto"><?= $totalUsers ?></strong>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-xl-4">
-        <div class="bottom-stat-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Recent Posts</h6>
-                <a href="/admin/blog.php" class="report-link">View all</a>
+        <div class="dsh-panel">
+            <div class="dsh-panel-head">
+                <h6 class="dsh-panel-title">Recent Posts</h6>
+                <a href="/admin/blog.php" class="dsh-panel-link">View all</a>
             </div>
+            <?php if (empty($recentPosts)): ?>
+            <div class="dsh-sched-empty"><i class="fas fa-newspaper"></i><p>No posts yet</p></div>
+            <?php else: ?>
             <?php foreach ($recentPosts as $rp): ?>
-            <div class="report-item">
-                <div class="report-icon">
-                    <i class="fas fa-file-alt"></i>
-                </div>
-                <div class="report-text">
-                    <h6><?= e(mb_strimwidth($rp['title'], 0, 35, '...')) ?></h6>
-                    <small>by <?= e($rp['author']) ?> · <?= date('M j', strtotime($rp['created_at'])) ?></small>
+            <div class="dsh-post-item">
+                <div class="dsh-post-icon"><i class="fas fa-file-medical-alt"></i></div>
+                <div class="dsh-post-info">
+                    <div class="dsh-post-title"><?= e(mb_strimwidth($rp['title'], 0, 40, '…')) ?></div>
+                    <div class="dsh-post-meta"><?= e($rp['author']) ?> · <?= date('d M', strtotime($rp['created_at'])) ?></div>
                 </div>
             </div>
             <?php endforeach; ?>
-            <?php if (empty($recentPosts)): ?>
-            <p class="text-muted text-center py-3 mb-0">No posts yet</p>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
+<!-- ======= ACTIVE DOCTORS ROW ======= -->
 <?php if (!empty($topDoctors)): ?>
-<div class="mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 fw-bold" style="color:var(--admin-text);"><i class="fas fa-user-md me-2" style="color:var(--admin-accent);"></i>Top Rated Doctors</h5>
-        <a href="/admin/doctors.php" style="font-size:0.82rem;font-weight:600;color:var(--admin-accent);text-decoration:none;">View more &raquo;</a>
-    </div>
-
-    <div class="docs-slider-outer">
-        <div class="docs-slider" id="docsSlider">
-            <?php foreach ($topDoctors as $idx => $td): ?>
-            <div class="docs-slide-item">
-                <div class="doctor-card">
-                    <?php if ($td['status']): ?><span class="doc-status-badge"></span><?php endif; ?>
-                    <?php if ($td['photo']): ?>
-                    <img src="<?= e($td['photo']) ?>" class="doc-avatar" alt="">
-                    <?php else: ?>
-                    <div class="doc-avatar-placeholder"><?= strtoupper(substr($td['name'], 0, 1)) ?></div>
-                    <?php endif; ?>
-                    <div class="doc-name">Dr. <?= e($td['name']) ?></div>
-                    <div class="doc-spec"><?= e($td['specialization'] ?: $td['department_name'] ?: 'General') ?></div>
-                    <?php if ($td['department_name']): ?>
-                    <div class="doc-dept"><i class="fas fa-hospital me-1"></i><?= e($td['department_name']) ?></div>
-                    <?php endif; ?>
-                </div>
+<div class="dsh-section-head">
+    <h6 class="dsh-section-title"><i class="fas fa-user-md me-2" style="color:var(--admin-accent)"></i>Active Doctors</h6>
+    <a href="/admin/doctors.php" class="dsh-panel-link">View all &rsaquo;</a>
+</div>
+<div class="docs-slider-outer mb-4">
+    <div class="docs-slider" id="docsSlider">
+        <?php foreach ($topDoctors as $idx => $td): ?>
+        <div class="docs-slide-item">
+            <div class="doctor-card">
+                <?php if ($td['status']): ?><span class="doc-status-badge"></span><?php endif; ?>
+                <?php if ($td['photo']): ?>
+                <img src="<?= e($td['photo']) ?>" class="doc-avatar" alt="">
+                <?php else: ?>
+                <div class="doc-avatar-placeholder"><?= strtoupper(substr($td['name'], 0, 1)) ?></div>
+                <?php endif; ?>
+                <div class="doc-name">Dr. <?= e($td['name']) ?></div>
+                <div class="doc-spec"><?= e($td['specialization'] ?: $td['department_name'] ?: 'General') ?></div>
+                <?php if ($td['department_name']): ?>
+                <div class="doc-dept"><i class="fas fa-hospital me-1"></i><?= e($td['department_name']) ?></div>
+                <?php endif; ?>
             </div>
-            <?php endforeach; ?>
         </div>
-
-        <!-- Mobile slider dots -->
-        <div class="docs-dots d-md-none" id="docsDots">
-            <?php foreach ($topDoctors as $idx => $td): ?>
-            <span class="docs-dot <?= $idx === 0 ? 'active' : '' ?>" data-index="<?= $idx ?>"></span>
-            <?php endforeach; ?>
-        </div>
+        <?php endforeach; ?>
+    </div>
+    <div class="docs-dots d-md-none" id="docsDots">
+        <?php foreach ($topDoctors as $idx => $td): ?>
+        <span class="docs-dot <?= $idx === 0 ? 'active' : '' ?>" data-index="<?= $idx ?>"></span>
+        <?php endforeach; ?>
     </div>
 </div>
 <?php endif; ?>
 
-<?php if ($pendingCount > 0): ?>
-<div class="alert d-flex align-items-center mb-4" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; color: #92400e;">
-    <i class="fas fa-exclamation-triangle me-2" style="color:#f59e0b;"></i>
-    <span>You have <strong><?= $pendingCount ?></strong> pending appointment(s) awaiting review.</span>
-    <a href="/admin/appointments.php?status=pending" class="btn btn-sm ms-auto" style="background:#f59e0b;color:#fff;border-radius:8px;">View Pending</a>
-</div>
-<?php endif; ?>
-
-<div class="row g-3">
+<!-- ======= APPOINTMENTS TABLE + RECENT PATIENTS ======= -->
+<div class="row g-3 mb-2">
     <div class="col-xl-8">
-        <div class="table-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0"><i class="fas fa-list-alt me-2" style="color:var(--admin-accent);"></i>Recent Appointments</h5>
-                <a href="/admin/appointments.php" class="btn btn-sm btn-outline-primary" style="border-radius:8px;">View All</a>
+        <div class="dsh-panel">
+            <div class="dsh-panel-head">
+                <h6 class="dsh-panel-title"><i class="fas fa-list-alt me-2" style="color:var(--admin-accent)"></i>Recent Appointments</h6>
+                <a href="/admin/appointments.php" class="dsh-primary-btn-sm">View All</a>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="dsh-table">
                     <thead>
                         <tr>
                             <th>Patient</th>
-                            <th>Doctor</th>
+                            <th>Assigned Doctor</th>
                             <th>Date</th>
+                            <th>Department</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($recentAppointments)): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-4">No appointments yet</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted py-4">No appointments yet</td></tr>
                         <?php else: ?>
                         <?php foreach ($recentAppointments as $apt): ?>
                         <tr>
-                            <td><strong><?= e($apt['patient_name']) ?></strong></td>
-                            <td><?= e($apt['doctor_name'] ?? '—') ?></td>
-                            <td><?= formatDate($apt['appointment_date']) ?></td>
-                            <td><span class="badge badge-<?= $apt['status'] ?>" style="border-radius:6px;padding:0.35em 0.65em;"><?= ucfirst($apt['status']) ?></span></td>
+                            <td>
+                                <div class="dsh-tbl-patient">
+                                    <div class="dsh-tbl-avatar"><?= strtoupper(substr($apt['patient_name'], 0, 1)) ?></div>
+                                    <div>
+                                        <div class="dsh-tbl-name"><?= e($apt['patient_name']) ?></div>
+                                        <div class="dsh-tbl-sub"><?= e($apt['patient_phone'] ?? '') ?></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="dsh-tbl-doc"><?= e($apt['doctor_name'] ?? '—') ?></td>
+                            <td class="dsh-tbl-date"><?= date('d M Y', strtotime($apt['appointment_date'])) ?></td>
+                            <td class="dsh-tbl-dept"><?= e($apt['department_name'] ?? '—') ?></td>
+                            <td><span class="dsh-status-badge <?= $apt['status'] ?>"><?= ucfirst($apt['status']) ?></span></td>
                         </tr>
                         <?php endforeach; ?>
                         <?php endif; ?>
@@ -649,22 +663,22 @@ if (isDoctor()) {
         </div>
     </div>
     <div class="col-xl-4">
-        <div class="table-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0"><i class="fas fa-users me-2" style="color:var(--admin-accent);"></i>Recent Patients</h5>
-                <a href="/admin/appointments.php" style="font-size:0.82rem;font-weight:600;color:var(--admin-accent);text-decoration:none;">More &raquo;</a>
+        <div class="dsh-panel">
+            <div class="dsh-panel-head">
+                <h6 class="dsh-panel-title"><i class="fas fa-user-injured me-2" style="color:var(--admin-accent)"></i>Recent Patients</h6>
+                <a href="/admin/appointments.php" class="dsh-panel-link">More &rsaquo;</a>
             </div>
             <?php if (empty($recentPatients)): ?>
-            <p class="text-muted text-center py-3 mb-0">No patients yet</p>
+            <div class="dsh-sched-empty"><i class="fas fa-users"></i><p>No patients yet</p></div>
             <?php else: ?>
             <?php foreach ($recentPatients as $rp): ?>
-            <div class="recent-patient-item">
-                <div class="rp-avatar-placeholder"><?= strtoupper(substr($rp['patient_name'], 0, 1)) ?></div>
-                <div class="rp-info">
-                    <div class="rp-name"><?= e($rp['patient_name']) ?></div>
-                    <div class="rp-date"><?= date('d M Y', strtotime($rp['appointment_date'])) ?></div>
+            <div class="dsh-patient-row">
+                <div class="dsh-tbl-avatar"><?= strtoupper(substr($rp['patient_name'], 0, 1)) ?></div>
+                <div class="dsh-pt-info">
+                    <div class="dsh-pt-name"><?= e($rp['patient_name']) ?></div>
+                    <div class="dsh-pt-date"><?= date('d M Y', strtotime($rp['appointment_date'])) ?></div>
                 </div>
-                <span class="rp-status <?= $rp['status'] ?>"><?= ucfirst($rp['status']) ?></span>
+                <span class="dsh-status-badge <?= $rp['status'] ?>"><?= ucfirst($rp['status']) ?></span>
             </div>
             <?php endforeach; ?>
             <?php endif; ?>
