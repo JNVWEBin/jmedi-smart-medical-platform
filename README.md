@@ -118,7 +118,7 @@ mysql://username:password@localhost/database_name
 1. Open **phpMyAdmin** from cPanel.
 2. Select your database from the left panel.
 3. Click the **Import** tab.
-4. Choose the file `database/jmedi_full_setup.sql` from your project folder.
+4. Choose the file `database/jmedi_setup.sql` from your project folder.
 5. Click **Go**.
 
 This single file:
@@ -220,9 +220,7 @@ jmedi/
 │   ├── uploads/                # Uploaded images (doctor photos, blog, sections)
 │   └── logos/                  # Site logo uploads
 ├── database/
-│   ├── jmedi_full_setup.sql    # Complete MySQL import file (use this for setup)
-│   ├── schema.sql              # Schema reference
-│   └── migrations/             # Incremental migration files
+│   └── jmedi_setup.sql         # Complete MySQL import file — single file for all installs
 ├── includes/
 │   ├── db.php                  # MySQL PDO connection
 │   ├── auth.php                # Session handling, CSRF tokens, RBAC
@@ -285,7 +283,7 @@ jmedi/
   ```
 
 **Doctor update/save fails with database error**
-- Run `database/jmedi_full_setup.sql` through phpMyAdmin Import — this safely adds any missing columns.
+- Run `database/jmedi_setup.sql` through phpMyAdmin Import — this safely adds any missing columns.
 
 **Clean URLs like `/departments` go to homepage**
 - Pull the latest `.htaccess` from GitHub (explicit route rules added).
@@ -327,7 +325,7 @@ Visit `http://localhost:5000`. The `router.php` handles clean URL routing locall
 
 After pulling new code in cPanel → Git Version Control:
 
-1. If database changes were made, re-run `database/jmedi_full_setup.sql` in phpMyAdmin (safe to run multiple times — uses `IF NOT EXISTS` and `IGNORE`).
+1. If database changes were made, re-run `database/jmedi_setup.sql` in phpMyAdmin (safe to run multiple times — uses `IF NOT EXISTS` and `IGNORE`).
 2. No server restart needed — PHP is stateless.
 
 ---
