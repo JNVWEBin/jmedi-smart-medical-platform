@@ -98,40 +98,81 @@
 
 <script>
 (function() {
-    var sidebar = document.getElementById('adminSidebar');
-    var wrapper = document.querySelector('.admin-wrapper');
-    var toggleBtn = document.getElementById('sidebarToggle');
-    var isMobile = function() { return window.innerWidth < 992; };
+    var sidebar    = document.getElementById('adminSidebar');
+    var toggleBtn  = document.getElementById('sidebarToggle');   // topbar hamburger
+    var collapseBtn= document.getElementById('sbCollapseBtn');   // sidebar chevron button
+    var isMobile   = function() { return window.innerWidth < 992; };
 
+    /* ---- Apply saved collapse state on load ---- */
     function applyCollapsedState() {
-        if (!isMobile() && localStorage.getItem('sidebarCollapsed') === 'true') {
-            wrapper.classList.add('sidebar-collapsed');
-        } else {
-            wrapper.classList.remove('sidebar-collapsed');
+        if (!isMobile() && localStorage.getItem('sbCollapsed') === 'true') {
+            sidebar.classList.add('sb-collapsed');
+        } else if (!isMobile()) {
+            sidebar.classList.remove('sb-collapsed');
         }
     }
-
     applyCollapsedState();
-    window.addEventListener('resize', applyCollapsedState);
+    window.addEventListener('resize', function() {
+        if (isMobile()) {
+            sidebar.classList.remove('sb-collapsed');
+        } else {
+            applyCollapsedState();
+        }
+    });
 
+    /* ---- Topbar hamburger — mobile: show/hide, desktop: expand (if collapsed) ---- */
     if (toggleBtn) {
         toggleBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             if (isMobile()) {
                 sidebar.classList.toggle('show');
             } else {
-                wrapper.classList.toggle('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', wrapper.classList.contains('sidebar-collapsed'));
+                sidebar.classList.remove('sb-collapsed');
+                localStorage.setItem('sbCollapsed', 'false');
             }
         });
     }
 
+    /* ---- Sidebar chevron button — collapse on desktop ---- */
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            sidebar.classList.add('sb-collapsed');
+            localStorage.setItem('sbCollapsed', 'true');
+        });
+    }
+
+    /* ---- Close on outside click (mobile) ---- */
     document.addEventListener('click', function(e) {
-        if (isMobile() && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+        if (isMobile() && sidebar.classList.contains('show')
+            && !sidebar.contains(e.target)
+            && !(toggleBtn && toggleBtn.contains(e.target))) {
             sidebar.classList.remove('show');
         }
     });
+
+    /* ---- Sidebar search filter ---- */
+    var searchInput = document.getElementById('sidebarSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var q = this.value.toLowerCase().trim();
+            document.querySelectorAll('.sidebar-nav li').forEach(function(li) {
+                var txt = (li.querySelector('.nav-label') || li.querySelector('a'))?.textContent.toLowerCase() || '';
+                li.style.display = (!q || txt.includes(q)) ? '' : 'none';
+            });
+            document.querySelectorAll('.sidebar-section-label').forEach(function(lbl) {
+                var key = lbl.getAttribute('data-section');
+                var list = document.querySelector('[data-section-list="' + key + '"]');
+                if (!list) return;
+                if (q) {
+                    list.classList.remove('section-hidden');
+                    lbl.classList.remove('collapsed');
+                }
+                var anyVisible = Array.from(list.querySelectorAll('li')).some(li => li.style.display !== 'none');
+                lbl.style.display = anyVisible ? '' : 'none';
+            });
+        });
+    }
 
     var scrollTopBtn = document.getElementById('scrollTopBtn');
     var scrollBottomBtn = document.getElementById('scrollBottomBtn');
