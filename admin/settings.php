@@ -36,14 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     updateSetting($pdo, $key, trim($_POST[$key]));
                 }
             }
-            if (isSuperAdmin() && isset($_POST['site_template'])) {
-                $allowedTpl = ['hospital', 'plastic_surgery'];
-                $tplVal = trim($_POST['site_template']);
-                if (in_array($tplVal, $allowedTpl)) {
-                    updateSetting($pdo, 'site_template', $tplVal);
-                }
-            }
-
             /* ── Logo uploads ── */
             $logoFields = [
                 'frontend_logo' => 'Frontend',
@@ -179,11 +171,6 @@ $tab = $_GET['tab'] ?? 'general';
 .btn-remove-logo{font-size:.78rem;padding:.25rem .6rem;border-radius:7px;}
 .settings-section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--admin-accent);border-bottom:2px solid #e8edf3;padding-bottom:.4rem;margin-bottom:1rem;}
 .color-swatch{width:36px;height:36px;border-radius:7px;border:2px solid #dee2e6;cursor:pointer;}
-.tpl-card{border:2px solid var(--admin-border);border-radius:14px;padding:1.1rem 1.2rem;transition:border-color .2s,box-shadow .2s;background:var(--admin-card);}
-.tpl-card:hover{border-color:var(--admin-accent);box-shadow:0 4px 16px rgba(59,130,246,.1);}
-.tpl-card-active{border-color:var(--admin-accent)!important;box-shadow:0 4px 18px rgba(59,130,246,.15)!important;}
-.tpl-icon{width:44px;height:44px;border-radius:10px;background:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center;color:var(--admin-accent);font-size:1.1rem;flex-shrink:0;}
-.fw-700{font-weight:700;}
 </style>
 
 <div class="row g-3">
@@ -478,40 +465,6 @@ $tab = $_GET['tab'] ?? 'general';
             <form method="POST" enctype="multipart/form-data">
                 <?= csrfField() ?>
                 <div class="row g-3">
-                    <?php if (isSuperAdmin()): ?>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Website Template / Theme <span class="badge ms-1" style="font-size:.65rem;background:var(--admin-accent);color:#fff;border-radius:6px;padding:.25em .55em;">Super Admin</span></label>
-                        <div class="row g-3 mt-1">
-                            <?php
-                            $currentTpl = $s['site_template'] ?? 'hospital';
-                            $templates = [
-                                'hospital'        => ['icon'=>'fas fa-hospital','label'=>'Hospital / Multi-Specialty Clinic','desc'=>'Standard medical portal with hero slider, departments, doctors directory, appointments, blog, and all CMS sections.'],
-                                'plastic_surgery' => ['icon'=>'fas fa-star','label'=>'Plastic Surgery & Aesthetics','desc'=>'Luxury single-doctor design with before/after gallery, procedures, testimonials — ideal for Praveen Plastic Surgery Centre / Avira Aesthetics.'],
-                            ];
-                            foreach ($templates as $tplKey => $tpl):
-                                $checked = $currentTpl === $tplKey;
-                            ?>
-                            <div class="col-md-6">
-                                <label class="d-block cursor-pointer" style="cursor:pointer;">
-                                    <input type="radio" name="site_template" value="<?= $tplKey ?>" <?= $checked ? 'checked' : '' ?> class="d-none tpl-radio" id="tpl-<?= $tplKey ?>">
-                                    <div class="tpl-card <?= $checked ? 'tpl-card-active' : '' ?>" id="tpl-card-<?= $tplKey ?>">
-                                        <div class="d-flex align-items-center gap-3 mb-2">
-                                            <div class="tpl-icon"><i class="<?= $tpl['icon'] ?>"></i></div>
-                                            <div>
-                                                <div class="fw-700"><?= $tpl['label'] ?></div>
-                                                <small class="text-muted" style="font-size:.76rem;"><?= ucfirst(str_replace('_',' ',$tplKey)) ?> template</small>
-                                            </div>
-                                            <div class="ms-auto"><i class="fas fa-check-circle tpl-check <?= $checked ? 'text-success' : 'text-muted opacity-25' ?>"></i></div>
-                                        </div>
-                                        <p class="mb-0" style="font-size:.82rem;color:var(--admin-text-muted);line-height:1.5;"><?= $tpl['desc'] ?></p>
-                                    </div>
-                                </label>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Changing the template updates the public homepage layout immediately after saving.</small>
-                    </div>
-                    <?php endif; ?>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Primary Color</label>
                         <div class="d-flex align-items-center gap-2">
@@ -681,17 +634,6 @@ function updatePreview() {
 if (pcInput)  pcInput.addEventListener('input',  () => { if(pcHex) pcHex.value = pcInput.value; updatePreview(); });
 if (scInput)  scInput.addEventListener('input',  () => { if(scHex) scHex.value = scInput.value; updatePreview(); });
 
-/* Template radio card toggle */
-document.querySelectorAll('.tpl-radio').forEach(radio => {
-    radio.addEventListener('change', () => {
-        document.querySelectorAll('.tpl-card').forEach(c => { c.classList.remove('tpl-card-active'); });
-        document.querySelectorAll('.tpl-check').forEach(c => { c.classList.add('text-muted','opacity-25'); c.classList.remove('text-success'); });
-        const card  = document.getElementById('tpl-card-' + radio.value);
-        const check = card ? card.querySelector('.tpl-check') : null;
-        if (card)  card.classList.add('tpl-card-active');
-        if (check) { check.classList.remove('text-muted','opacity-25'); check.classList.add('text-success'); }
-    });
-});
 </script>
 
 <?php require_once __DIR__ . '/../includes/admin_footer.php'; ?>
