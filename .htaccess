@@ -21,6 +21,9 @@ Options -MultiViews
     RewriteCond %{DOCUMENT_ROOT}/public/%1.php -f
     RewriteRule ^([^/]+)/?$ public/$1.php [L,QSA]
 
+    # Doctor clean URLs: /doctor/{slug} → public/doctor-profile.php?slug={slug}
+    RewriteRule ^doctor/([a-z0-9\-]+)/?$ public/doctor-profile.php?slug=$1 [L,QSA]
+
     # Fallback — send everything else to public/index.php (handles its own 404)
     RewriteRule ^(.*)$ public/index.php [L,QSA]
 </IfModule>
