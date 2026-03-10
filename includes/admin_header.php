@@ -13,6 +13,9 @@ $adminAvatar = $_SESSION['admin_avatar'] ?? '';
 
 $pendingNotif = (int)$pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'pending'")->fetchColumn();
 
+$adminLogoUrl  = getSetting($pdo, 'admin_logo', '');
+$siteNameFull  = getSetting($pdo, 'site_name', 'JMedi');
+
 if (isDoctor()) {
     $docId = (int)($_SESSION['admin_doctor_id'] ?? 0);
     $stDocPending = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = :d AND status = 'pending'");
@@ -46,8 +49,12 @@ if (isDoctor()) {
     <nav class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-header">
             <a href="/admin/dashboard.php" class="sidebar-brand text-white text-decoration-none">
+                <?php if (!empty($adminLogoUrl)): ?>
+                <img src="<?= e($adminLogoUrl) ?>" class="sidebar-brand-logo" alt="<?= e($siteNameFull) ?>">
+                <?php else: ?>
                 <span class="brand-icon"><i class="fas fa-heartbeat"></i></span>
-                <span class="brand-text">JMedi</span>
+                <span class="brand-text"><?= e($siteNameFull) ?></span>
+                <?php endif; ?>
             </a>
             <button class="sidebar-collapse-btn" id="sbCollapseBtn" title="Collapse sidebar"><i class="fas fa-chevron-left"></i></button>
         </div>
