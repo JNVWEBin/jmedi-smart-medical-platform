@@ -153,7 +153,7 @@ try {
                     $icons = ['/' => 'fa-home', 'departments' => 'fa-hospital', 'doctors' => 'fa-user-md', 'blog' => 'fa-newspaper', 'contact' => 'fa-envelope'];
                     $icon = $icons[$menuSlug] ?? $icons[$menuItem['menu_link']] ?? 'fa-circle';
                 ?>
-                <a href="<?= e($menuItem['menu_link']) ?>" class="mob-nav-link <?= $isActive ? 'active' : '' ?>" data-bs-dismiss="offcanvas" style="--i:<?= $i ?>;">
+                <a href="<?= e($menuItem['menu_link']) ?>" class="mob-nav-link <?= $isActive ? 'active' : '' ?>" style="--i:<?= $i ?>;">
                     <span class="mob-link-icon"><i class="fas <?= $icon ?>"></i></span>
                     <?= e($menuItem['menu_name']) ?>
                 </a>
@@ -168,7 +168,7 @@ try {
                     ['href' => '/public/contact.php',       'label' => 'Contact',     'icon' => 'fa-envelope', 'key' => 'contact'],
                 ];
                 foreach ($defaultLinks as $i => $link): ?>
-                <a href="<?= $link['href'] ?>" class="mob-nav-link <?= $currentPage === $link['key'] ? 'active' : '' ?>" data-bs-dismiss="offcanvas" style="--i:<?= $i ?>;">
+                <a href="<?= $link['href'] ?>" class="mob-nav-link <?= $currentPage === $link['key'] ? 'active' : '' ?>" style="--i:<?= $i ?>;">
                     <span class="mob-link-icon"><i class="fas <?= $link['icon'] ?>"></i></span>
                     <?= $link['label'] ?>
                 </a>
@@ -181,11 +181,11 @@ try {
                 <i class="fas fa-calendar-check me-2"></i> Book Appointment
             </a>
             <?php if (!empty($_SESSION['patient_id'])): ?>
-            <a href="/public/patient-dashboard.php" class="btn mob-login-btn w-100 mt-2" data-bs-dismiss="offcanvas">
+            <a href="/public/patient-dashboard.php" class="btn mob-login-btn w-100 mt-2">
                 <i class="fas fa-th-large me-2"></i> My Dashboard
             </a>
             <?php elseif (isLoggedIn()): ?>
-            <a href="/admin/" class="btn mob-login-btn w-100 mt-2" data-bs-dismiss="offcanvas">
+            <a href="/admin/" class="btn mob-login-btn w-100 mt-2">
                 <i class="fas fa-tachometer-alt me-2"></i> Admin Panel
             </a>
             <?php else: ?>
