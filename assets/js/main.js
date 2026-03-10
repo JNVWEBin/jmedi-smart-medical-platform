@@ -157,5 +157,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (mobDrawer && mobBtn) {
         mobDrawer.addEventListener('show.bs.offcanvas',   () => mobBtn.classList.add('is-open'));
         mobDrawer.addEventListener('hidden.bs.offcanvas', () => mobBtn.classList.remove('is-open'));
+
+        mobDrawer.querySelectorAll('a[href]').forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href || href === '#') return;
+            link.addEventListener('click', function(e) {
+                const dest = this.getAttribute('href');
+                const instance = bootstrap.Offcanvas.getInstance(mobDrawer);
+                if (instance) {
+                    e.preventDefault();
+                    mobDrawer.addEventListener('hidden.bs.offcanvas', () => {
+                        window.location.href = dest;
+                    }, { once: true });
+                    instance.hide();
+                }
+            });
+        });
     }
 });
