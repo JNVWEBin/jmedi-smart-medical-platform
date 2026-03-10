@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS `doctors` (
     `reviews_count`       INT          DEFAULT 0,
     `patients_treated`    INT          DEFAULT 0,
     `success_rate`        INT          DEFAULT 98,
+    `profile_template`    TINYINT      DEFAULT 1,
     `status`              SMALLINT     DEFAULT 1,
     `sort_order`          INT          DEFAULT 0,
     `created_at`          TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
