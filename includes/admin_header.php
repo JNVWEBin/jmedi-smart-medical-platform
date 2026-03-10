@@ -207,9 +207,9 @@ if (isDoctor()) {
                 </div>
             </div>
             <div class="topbar-actions">
-                <a href="/admin/appointments.php" class="btn-add d-none d-sm-flex">
-                    <i class="fas fa-plus"></i> Add patient
-                </a>
+                <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle Dark / Light Mode">
+                    <i class="fas fa-moon" id="darkModeIcon"></i>
+                </button>
 
                 <button class="topbar-icon-btn" id="fullscreenBtn" title="Toggle Fullscreen" onclick="toggleFullscreen()">
                     <i class="fas fa-expand" id="fullscreenIcon"></i>
