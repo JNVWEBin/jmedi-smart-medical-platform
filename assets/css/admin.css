@@ -30,7 +30,7 @@
     width: var(--admin-sidebar-w);
     background: var(--admin-primary);
     color: #fff;
-    min-height: 100vh;
+    height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
@@ -41,7 +41,6 @@
     flex-direction: column;
     border-right: 1px solid rgba(255,255,255,0.06);
 }
-.admin-sidebar:hover { overflow-y: auto; }
 
 /* ---- Header ---- */
 .sidebar-header {
@@ -52,6 +51,15 @@
     justify-content: space-between;
     flex-shrink: 0;
 }
+
+/* Logo image in sidebar header */
+.sidebar-brand-logo {
+    max-height: 38px;
+    max-width: 150px;
+    object-fit: contain;
+    display: block;
+}
+.admin-sidebar.sb-collapsed .sidebar-brand-logo { max-width: 40px; max-height: 32px; }
 
 .sidebar-brand {
     font-size: 1.3rem;
