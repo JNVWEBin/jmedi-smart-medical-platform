@@ -336,13 +336,8 @@
 }
 .admin-sidebar.sb-collapsed ~ .admin-content { margin-left: var(--admin-sidebar-cw); }
 
-/* Dr sidebar profile in collapsed mode */
-.admin-sidebar.sb-collapsed .dr-sidebar-profile { padding: 0.5rem; }
-.admin-sidebar.sb-collapsed .dr-sb-name,
-.admin-sidebar.sb-collapsed .dr-sb-spec,
-.admin-sidebar.sb-collapsed .dr-sb-qual { display: none; }
-.admin-sidebar.sb-collapsed .dr-sb-photo,
-.admin-sidebar.sb-collapsed .dr-sb-avatar { margin: 0 auto; }
+/* Dr sidebar profile in collapsed mode — hide entirely, avatar is in footer */
+.admin-sidebar.sb-collapsed .dr-sidebar-profile { display: none; }
 
 .admin-topbar {
     background: var(--admin-card);
