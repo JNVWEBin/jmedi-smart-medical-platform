@@ -105,7 +105,8 @@ function getRelatedDoctors(PDO $pdo, int $departmentId, int $excludeId, int $lim
 }
 
 function generateDoctorSlug(PDO $pdo, string $name, ?int $excludeId = null): string {
-    $base = 'dr-' . slugify($name);
+    $cleanName = preg_replace('/^dr\.?\s+/i', '', trim($name));
+    $base = 'dr-' . slugify($cleanName);
     $slug = $base;
     $i = 2;
     while (true) {
