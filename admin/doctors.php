@@ -106,12 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id']) && !iss
                     $sql .= " WHERE doctor_id=:id";
                     $data[':id'] = $doctorId;
                     $pdo->prepare($sql)->execute($data);
-                    $success = 'Doctor updated successfully.';
+                    $success = 'Doctor "' . $name . '" updated successfully. Template ' . (int)($_POST['profile_template'] ?? 1) . ' saved.';
                     $action = 'edit';
                 } else {
                     $data[':photo'] = $photo;
                     $pdo->prepare("INSERT INTO doctors (name, slug, photo, department_id, qualification, experience, specialization, languages, bio, certifications, services, email, phone, available_days, available_time, consultation_fee, consultation_types, video_consultation, clinic_name, clinic_address, clinic_location, patients_treated, success_rate, rating, profile_template, status) VALUES (:name, :slug, :photo, :department_id, :qualification, :experience, :specialization, :languages, :bio, :certifications, :services, :email, :phone, :available_days, :available_time, :consultation_fee, :consultation_types, :video_consultation, :clinic_name, :clinic_address, :clinic_location, :patients_treated, :success_rate, :rating, :profile_template, :status)")->execute($data);
-                    $success = 'Doctor added successfully.';
+                    $success = 'Dr. ' . $name . ' has been added successfully.';
                     $action = 'list';
                 }
             } catch (\PDOException $e) {
@@ -137,8 +137,12 @@ if (isset($_GET['msg'])) {
 $allDoctors = getDoctors($pdo, null, false);
 ?>
 
-<?php if ($success): ?><div class="alert alert-success alert-dismissible fade show" style="border-radius:10px;border:none;"><i class="fas fa-check-circle me-2"></i><?= e($success) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><?php endif; ?>
-<?php if ($error): ?><div class="alert alert-danger alert-dismissible fade show" style="border-radius:10px;border:none;"><i class="fas fa-exclamation-circle me-2"></i><?= e($error) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><?php endif; ?>
+<?php if ($success): ?>
+<script>document.addEventListener('DOMContentLoaded',function(){ window.showAdminToast('Saved Successfully', <?= json_encode($success) ?>, 'success'); });</script>
+<?php endif; ?>
+<?php if ($error): ?>
+<script>document.addEventListener('DOMContentLoaded',function(){ window.showAdminToast('Error', <?= json_encode($error) ?>, 'error'); });</script>
+<?php endif; ?>
 
 <?php if ($action === 'add' || $action === 'edit'): ?>
 
