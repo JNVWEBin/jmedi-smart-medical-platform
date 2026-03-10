@@ -36,13 +36,16 @@
     </div>
 </div>
 
-<!-- Success Toast -->
+<!-- Admin Toast Notification -->
 <div class="position-fixed top-0 end-0 p-3" style="z-index:9999;">
-    <div id="adminToast" class="toast align-items-center border-0 text-white" role="alert" style="border-radius:12px;min-width:280px;background:linear-gradient(135deg,#198754,#20c997);">
-        <div class="d-flex align-items-center px-3 py-3">
-            <i class="fas fa-check-circle me-2" style="font-size:1.2rem;"></i>
-            <div id="adminToastMsg" class="toast-body p-0 fw-semibold"></div>
-            <button type="button" class="btn-close btn-close-white ms-auto flex-shrink-0" data-bs-dismiss="toast"></button>
+    <div id="adminToast" class="toast align-items-center border-0 text-white" role="alert" aria-live="assertive" style="border-radius:14px;min-width:300px;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <div class="d-flex align-items-start px-3 py-3 gap-2">
+            <i id="adminToastIcon" class="fas fa-check-circle mt-1 flex-shrink-0" style="font-size:1.15rem;"></i>
+            <div class="flex-grow-1">
+                <div id="adminToastTitle" class="fw-700 mb-1" style="font-size:.88rem;"></div>
+                <div id="adminToastMsg" class="toast-body p-0" style="font-size:.82rem;opacity:.92;line-height:1.5;"></div>
+            </div>
+            <button type="button" class="btn-close btn-close-white flex-shrink-0" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
@@ -78,22 +81,43 @@
         var params = new URLSearchParams(window.location.search);
         var msg = params.get('msg');
         var messages = {
-            'deleted': 'Item deleted successfully.',
-            'toggled': 'Status updated successfully.',
-            'saved':   'Changes saved successfully.',
-            'updated': 'Record updated successfully.'
+            'deleted': ['Deleted',  'Item deleted successfully.',    'success'],
+            'toggled': ['Updated',  'Status updated successfully.',  'success'],
+            'saved':   ['Saved',    'Changes saved successfully.',   'success'],
+            'updated': ['Updated',  'Record updated successfully.',  'success'],
+            'review_deleted': ['Deleted', 'Review removed.', 'success'],
+            'review_added':   ['Added',   'Review added successfully.', 'success'],
         };
         if (msg && messages[msg]) {
-            var toastEl = document.getElementById('adminToast');
-            document.getElementById('adminToastMsg').textContent = messages[msg];
-            var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-            toast.show();
+            var m = messages[msg];
+            window.showAdminToast(m[0], m[1], m[2]);
             var url = new URL(window.location.href);
             url.searchParams.delete('msg');
             window.history.replaceState({}, '', url.toString());
         }
     });
 })();
+
+window.showAdminToast = function(title, message, type) {
+    type = type || 'success';
+    var toastEl   = document.getElementById('adminToast');
+    var titleEl   = document.getElementById('adminToastTitle');
+    var msgEl     = document.getElementById('adminToastMsg');
+    var iconEl    = document.getElementById('adminToastIcon');
+    var styles = {
+        success: { bg: 'linear-gradient(135deg,#198754,#20c997)', icon: 'fa-check-circle' },
+        error:   { bg: 'linear-gradient(135deg,#dc3545,#e85d6b)', icon: 'fa-exclamation-circle' },
+        info:    { bg: 'linear-gradient(135deg,#0D6EFD,#0891b2)', icon: 'fa-info-circle' },
+        warning: { bg: 'linear-gradient(135deg,#f59e0b,#f97316)', icon: 'fa-exclamation-triangle' },
+    };
+    var s = styles[type] || styles.success;
+    toastEl.style.background = s.bg;
+    iconEl.className = 'fas ' + s.icon + ' mt-1 flex-shrink-0';
+    titleEl.textContent  = title   || '';
+    msgEl.textContent    = message || '';
+    var toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: type === 'error' ? 7000 : 4500 });
+    toast.show();
+};
 </script>
 
 <script>
