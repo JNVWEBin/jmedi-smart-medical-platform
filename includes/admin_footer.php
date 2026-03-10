@@ -236,6 +236,26 @@
     });
 })();
 
+/* ---- Dark / Light mode toggle ---- */
+(function() {
+    var btn  = document.getElementById('darkModeToggle');
+    var icon = document.getElementById('darkModeIcon');
+    function applyDark(on) {
+        document.body.classList.toggle('dark-mode', on);
+        if (icon) {
+            icon.className = on ? 'fas fa-sun' : 'fas fa-moon';
+        }
+    }
+    applyDark(localStorage.getItem('adminDarkMode') === 'true');
+    if (btn) {
+        btn.addEventListener('click', function() {
+            var next = !document.body.classList.contains('dark-mode');
+            localStorage.setItem('adminDarkMode', next);
+            applyDark(next);
+        });
+    }
+})();
+
 function toggleFullscreen() {
     var icon = document.getElementById('fullscreenIcon');
     if (!document.fullscreenElement) {
