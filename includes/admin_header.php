@@ -51,13 +51,6 @@ if (isDoctor()) {
             </a>
             <button class="sidebar-collapse-btn" id="sbCollapseBtn" title="Collapse sidebar"><i class="fas fa-chevron-left"></i></button>
         </div>
-        <div class="sidebar-search">
-            <div class="sidebar-search-inner">
-                <i class="fas fa-search"></i>
-                <input type="text" id="sidebarSearchInput" placeholder="Search item..." autocomplete="off">
-            </div>
-        </div>
-
         <div class="sidebar-body">
 
         <?php if (isDoctor() && !empty($sidebarDoctor)): ?>
