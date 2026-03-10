@@ -99,19 +99,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id']) && !iss
                 ':status'             => (int)($_POST['status'] ?? 1),
             ];
 
-            if ($doctorId) {
-                $sql = "UPDATE doctors SET name=:name, slug=:slug, department_id=:department_id, qualification=:qualification, experience=:experience, specialization=:specialization, languages=:languages, bio=:bio, certifications=:certifications, services=:services, email=:email, phone=:phone, available_days=:available_days, available_time=:available_time, consultation_fee=:consultation_fee, consultation_types=:consultation_types, video_consultation=:video_consultation, clinic_name=:clinic_name, clinic_address=:clinic_address, clinic_location=:clinic_location, patients_treated=:patients_treated, success_rate=:success_rate, rating=:rating, profile_template=:profile_template, status=:status";
-                if ($photo) { $sql .= ", photo=:photo"; $data[':photo'] = $photo; }
-                $sql .= " WHERE doctor_id=:id";
-                $data[':id'] = $doctorId;
-                $pdo->prepare($sql)->execute($data);
-                $success = 'Doctor updated successfully.';
-                $action = 'edit';
-            } else {
-                $data[':photo'] = $photo;
-                $pdo->prepare("INSERT INTO doctors (name, slug, photo, department_id, qualification, experience, specialization, languages, bio, certifications, services, email, phone, available_days, available_time, consultation_fee, consultation_types, video_consultation, clinic_name, clinic_address, clinic_location, patients_treated, success_rate, rating, profile_template, status) VALUES (:name, :slug, :photo, :department_id, :qualification, :experience, :specialization, :languages, :bio, :certifications, :services, :email, :phone, :available_days, :available_time, :consultation_fee, :consultation_types, :video_consultation, :clinic_name, :clinic_address, :clinic_location, :patients_treated, :success_rate, :rating, :profile_template, :status)")->execute($data);
-                $success = 'Doctor added successfully.';
-                $action = 'list';
+            try {
+                if ($doctorId) {
+                    $sql = "UPDATE doctors SET name=:name, slug=:slug, department_id=:department_id, qualification=:qualification, experience=:experience, specialization=:specialization, languages=:languages, bio=:bio, certifications=:certifications, services=:services, email=:email, phone=:phone, available_days=:available_days, available_time=:available_time, consultation_fee=:consultation_fee, consultation_types=:consultation_types, video_consultation=:video_consultation, clinic_name=:clinic_name, clinic_address=:clinic_address, clinic_location=:clinic_location, patients_treated=:patients_treated, success_rate=:success_rate, rating=:rating, profile_template=:profile_template, status=:status";
+                    if ($photo) { $sql .= ", photo=:photo"; $data[':photo'] = $photo; }
+                    $sql .= " WHERE doctor_id=:id";
+                    $data[':id'] = $doctorId;
+                    $pdo->prepare($sql)->execute($data);
+                    $success = 'Doctor updated successfully.';
+                    $action = 'edit';
+                } else {
+                    $data[':photo'] = $photo;
+                    $pdo->prepare("INSERT INTO doctors (name, slug, photo, department_id, qualification, experience, specialization, languages, bio, certifications, services, email, phone, available_days, available_time, consultation_fee, consultation_types, video_consultation, clinic_name, clinic_address, clinic_location, patients_treated, success_rate, rating, profile_template, status) VALUES (:name, :slug, :photo, :department_id, :qualification, :experience, :specialization, :languages, :bio, :certifications, :services, :email, :phone, :available_days, :available_time, :consultation_fee, :consultation_types, :video_consultation, :clinic_name, :clinic_address, :clinic_location, :patients_treated, :success_rate, :rating, :profile_template, :status)")->execute($data);
+                    $success = 'Doctor added successfully.';
+                    $action = 'list';
+                }
+            } catch (\PDOException $e) {
+                $error = 'Database error: ' . $e->getMessage() . ' — Please run the latest database migration (database/migrations/v2_doctor_profile_fields.sql) in phpMyAdmin.';
             }
         }
     }
