@@ -333,19 +333,27 @@ INSERT IGNORE INTO `doctors` (`name`, `photo`, `department_id`, `qualification`,
 ('Dr. Rachel Martinez', 'https://randomuser.me/api/portraits/women/28.jpg',  1, 'MD, FACC',        '11 Years', 'Cardiac Electrophysiology',            'Dr. Rachel Martinez is a cardiac electrophysiologist specializing in the diagnosis and treatment of heart rhythm disorders. She completed her cardiology fellowship at Cleveland Clinic and further subspecialized in electrophysiology at Mayo Clinic. Dr. Martinez has extensive experience in catheter ablation procedures, pacemaker implantation, and management of atrial fibrillation.',                               'martinez@jmedi.com', '+1-800-101-0007', 'Monday, Tuesday, Thursday, Friday',            '9:00 AM - 5:00 PM',  'English, Spanish', 1900, 97, 4.8, 76,  'JMedi Heart Rhythm Center',    'Board Certified Cardiac Electrophysiologist, FACC',        'Atrial Fibrillation Ablation, Pacemaker Implantation, Defibrillator Implantation, Heart Rhythm Monitoring, EP Studies, Cardiac Resynchronization Therapy', 1),
 ('Dr. Andrew Thompson', 'https://randomuser.me/api/portraits/men/52.jpg',    2, 'MD, DO, FAAN',    '16 Years', 'Neurosurgery & Spine',                 'Dr. Andrew Thompson is a dual board-certified neurosurgeon with 16 years of experience in complex brain and spine surgery. He trained at Johns Hopkins Neurosurgery and completed a fellowship in minimally invasive spine surgery at Cedars-Sinai Medical Center. Dr. Thompson has performed over 2,000 neurosurgical procedures and specializes in brain tumor removal and spinal fusion.',                          'thompson@jmedi.com', '+1-800-101-0008', 'Monday, Wednesday, Thursday, Friday',          '8:00 AM - 4:00 PM',  'English',          2000, 98, 4.9, 91,  'JMedi Neurosurgery Center',    'Dual Board Certified Neurosurgeon, MD, DO, FAAN',          'Brain Tumor Surgery, Spine Surgery, Minimally Invasive Neurosurgery, Deep Brain Stimulation, Cervical Disc Replacement, Lumbar Fusion, Skull Base Surgery', 1);
 
--- Fix double "dr-dr-" slug bug (sets correct slug regardless of current value)
--- Safe: uses email as the unique key, not the slug itself
-UPDATE `doctors` SET `slug`='dr-james-wilson'    WHERE `email`='wilson@jmedi.com';
-UPDATE `doctors` SET `slug`='dr-sarah-chen'      WHERE `email`='chen@jmedi.com';
-UPDATE `doctors` SET `slug`='dr-michael-roberts' WHERE `email`='roberts@jmedi.com';
-UPDATE `doctors` SET `slug`='dr-emily-johnson'   WHERE `email`='johnson@jmedi.com';
-UPDATE `doctors` SET `slug`='dr-david-park'      WHERE `email`='park@jmedi.com';
-UPDATE `doctors` SET `slug`='dr-lisa-anderson'   WHERE `email`='anderson@jmedi.com';
-UPDATE `doctors` SET `slug`='dr-rachel-martinez' WHERE `email`='martinez@jmedi.com';
-UPDATE `doctors` SET `slug`='dr-andrew-thompson' WHERE `email`='thompson@jmedi.com';
+-- Fix double "dr-dr-" slug bug safely
+-- Step 1: Remove any orphan rows that have the clean slug but no matching email
+--         so the UPDATE below does not hit a duplicate-key conflict
+DELETE FROM `doctors`
+WHERE `slug` IN ('dr-james-wilson','dr-sarah-chen','dr-michael-roberts','dr-emily-johnson',
+                 'dr-david-park','dr-lisa-anderson','dr-rachel-martinez','dr-andrew-thompson')
+  AND `email` NOT IN ('wilson@jmedi.com','chen@jmedi.com','roberts@jmedi.com','johnson@jmedi.com',
+                      'park@jmedi.com','anderson@jmedi.com','martinez@jmedi.com','thompson@jmedi.com');
 
--- Fix any remaining "dr-dr-" double prefix slugs for non-seeded doctors
-UPDATE `doctors` SET `slug` = CONCAT('dr-', SUBSTRING(`slug`, 4))
+-- Step 2: Set the correct clean slug for each seeded doctor (by email, safe)
+UPDATE IGNORE `doctors` SET `slug`='dr-james-wilson'    WHERE `email`='wilson@jmedi.com';
+UPDATE IGNORE `doctors` SET `slug`='dr-sarah-chen'      WHERE `email`='chen@jmedi.com';
+UPDATE IGNORE `doctors` SET `slug`='dr-michael-roberts' WHERE `email`='roberts@jmedi.com';
+UPDATE IGNORE `doctors` SET `slug`='dr-emily-johnson'   WHERE `email`='johnson@jmedi.com';
+UPDATE IGNORE `doctors` SET `slug`='dr-david-park'      WHERE `email`='park@jmedi.com';
+UPDATE IGNORE `doctors` SET `slug`='dr-lisa-anderson'   WHERE `email`='anderson@jmedi.com';
+UPDATE IGNORE `doctors` SET `slug`='dr-rachel-martinez' WHERE `email`='martinez@jmedi.com';
+UPDATE IGNORE `doctors` SET `slug`='dr-andrew-thompson' WHERE `email`='thompson@jmedi.com';
+
+-- Step 3: Fix any remaining "dr-dr-" double prefix slugs for non-seeded doctors
+UPDATE IGNORE `doctors` SET `slug` = CONCAT('dr-', SUBSTRING(`slug`, 4))
 WHERE `slug` LIKE 'dr-dr-%';
 
 -- ── Testimonials ──────────────────────────────────────────────────────────────
